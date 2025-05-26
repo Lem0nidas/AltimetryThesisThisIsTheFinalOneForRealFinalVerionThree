@@ -1,6 +1,10 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
+
+from  services.rads_sync_latest import get_latest_nc_file
+
 
 app = FastAPI()
 
@@ -21,3 +25,21 @@ async def download_data(request: DownloadRequest):
     print(f"Received satellite request: {request.satellite}")
     # Placeholder: you can later trigger a file fetch, job queue, etc.
     return {"message": f"Received request for satellite: {request.satellite}"}
+
+
+@app.post("/api/download_latest")
+def download_raw_data(request: dict):
+    satellite = request.get("satellite")
+    if not satellite:
+        raise HTTPException(status_code=400, detail="Missing 'satellite' key")
+
+    try:
+        file_path = get_latest_nc_file(satellite)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return FileResponse(
+        path=file_path,
+        media_type="application/x-netcdf",
+        filename=file_path.name
+    )

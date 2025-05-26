@@ -1,39 +1,60 @@
 import subprocess
 import re
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 
-def get_latest_ers1_nc(remote_base='radsuser@rads.tudelft.nl::rads/data/e1'):
-    # List all available cycles for ERS-1 in phase "a"
-    phase = 'a'
-    rsync_cmd_list_cycles = ['rsync', '--list-only', f'{remote_base}/{phase}/']
-    cycles_output = subprocess.check_output(rsync_cmd_list_cycles, text=True)
-    cycle_dirs = re.findall(r'c\d{3}/', cycles_output)
-    
+load_dotenv()
+
+RADS_PASSWORD = os.getenv("RADS_PASSWORD")
+if not RADS_PASSWORD:
+    raise RuntimeError("RADS_PASSWORD is not set in .env")
+
+# TODO Make the /rads_data directory accesable. I still get the error Permission denied.
+# TODO I don't want to type the rads server password everytime. Create an eviromental variable.
+def get_latest_nc_file(satellite: str, local_dir: Path = Path("./rads_data")) -> Path:
+    """
+    Downloads the latest .nc file for a given satellite from RADS server.
+    """
+    remote_base = 'radsuser@rads.tudelft.nl::rads/data/'
+
+    if not satellite:
+        raise ValueError("Satellite not specified.")
+
+    # Ensure local target dir exists
+    local_dir.mkdir(parents=True, exist_ok=True)
+
+    # Step 1: List cycles
+    cycle_cmd = ['rsync', f'{remote_base}/{satellite}/a/']
+    try:
+        cycles_output = subprocess.check_output(cycle_cmd, text=True)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError("Failed to list remote cycles.") from e
+
+    cycle_dirs = re.findall(r'c\d{3}', cycles_output)
     if not cycle_dirs:
-        raise Exception("No cycle directories found.")
+        raise RuntimeError("No cycle directories found.")
 
-    # Sort cycle directories to find the latest one
     last_cycle = sorted(cycle_dirs)[-1].strip('/')
 
-    # List files in the latest cycle directory
-    rsync_cmd_list_files = ['rsync', '--list-only', f'{remote_base}/{phase}/{last_cycle}/']
-    files_output = subprocess.check_output(rsync_cmd_list_files, text=True)
+    # Step 2: List .nc files in latest cycle
+    file_cmd = ['rsync', '--list-only', f'{remote_base}/{satellite}/a/{last_cycle}/']
+    try:
+        files_output = subprocess.check_output(file_cmd, text=True)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Failed to list files in {last_cycle}.") from e
+
     nc_files = re.findall(r'(\S+\.nc)', files_output)
-
     if not nc_files:
-        raise Exception(f"No .nc files found in {last_cycle}.")
+        raise RuntimeError(f"No .nc files found in {last_cycle}.")
 
-    # Sort by pass number assuming format e1pPPPPcCCC.nc
     latest_file = sorted(nc_files)[-1]
-    print(f"Latest file: {latest_file}")
 
-    # Download the file
-    remote_file_path = f'{remote_base}/{phase}/{last_cycle}/{latest_file}'
-    local_target = f'./{latest_file}'
-    rsync_cmd_download = ['rsync', '-avz', remote_file_path, local_target]
-    subprocess.run(rsync_cmd_download)
+    # Step 3: Download the file
+    remote_file_path = f'{remote_base}/{satellite}/a/{last_cycle}/{latest_file}'
+    local_target = local_dir / latest_file
 
-    return latest_file
+    download_cmd = ['rsync', '-avz', remote_file_path, str(local_target)]
+    subprocess.run(download_cmd, check=True)
 
-# Run the function
-latest = get_latest_ers1_nc()
-print(f"Downloaded: {latest}")
+    return local_target

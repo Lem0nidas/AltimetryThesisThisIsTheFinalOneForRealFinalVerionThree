@@ -30,14 +30,23 @@
 		}
 
 		try {
-			const res = await fetch('http://localhost:8000/api/download', {
+			const resA = await fetch('http://localhost:8000/api/download', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ satellite: selectedSatellite })
 			});
 
-			const data = await res.json();
-			responseMessage = data.message || 'Request sent!';
+			const dataA = await resA.json();
+			responseMessage = dataA.message || 'First Request sent!';
+
+			const resB = await fetch('http://localhost:8000/api/download_latest', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ satellite: selectedSatellite })
+			});
+
+			const dataB = await resB.json();
+			responseMessage = dataB.message || 'File Downloaded!';
 		} catch (err) {
 			responseMessage = 'Error contacting server.';
 			console.error(err);
