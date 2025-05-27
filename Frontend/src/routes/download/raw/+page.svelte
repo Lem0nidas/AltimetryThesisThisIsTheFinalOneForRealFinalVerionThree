@@ -48,6 +48,7 @@
 			const dataB = await resB.json();
 			responseMessage = dataB.message || 'File Downloaded!';
 		} catch (err) {
+// TODO I get the error message even if the request is successful, need to fix this
 			responseMessage = 'Error contacting server.';
 			console.error(err);
 		}

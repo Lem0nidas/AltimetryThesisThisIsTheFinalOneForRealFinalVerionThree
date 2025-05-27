@@ -28,13 +28,13 @@ async def download_data(request: DownloadRequest):
 
 
 @app.post("/api/download_latest")
-def download_raw_data(request: dict):
-    satellite = request.get("satellite")
-    if not satellite:
+def download_raw_data(request: DownloadRequest):
+    # satellite = request.get("satellite")
+    if not request.satellite:
         raise HTTPException(status_code=400, detail="Missing 'satellite' key")
 
     try:
-        file_path = get_latest_nc_file(satellite)
+        file_path = get_latest_nc_file(request.satellite)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

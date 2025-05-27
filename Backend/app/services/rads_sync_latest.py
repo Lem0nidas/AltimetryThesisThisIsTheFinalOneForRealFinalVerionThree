@@ -6,9 +6,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-RADS_PASSWORD = os.getenv("RADS_PASSWORD")
-if not RADS_PASSWORD:
-    raise RuntimeError("RADS_PASSWORD is not set in .env")
+# RADS_PASS = os.getenv("RSYNC_PASSWORD")
+# if not RADS_PASS:
+#     raise RuntimeError("RSYNC_PASSWORD is not set in .env")
 
 # TODO Make the /rads_data directory accesable. I still get the error Permission denied.
 # TODO I don't want to type the rads server password everytime. Create an eviromental variable.
@@ -27,7 +27,7 @@ def get_latest_nc_file(satellite: str, local_dir: Path = Path("./rads_data")) ->
     # Step 1: List cycles
     cycle_cmd = ['rsync', f'{remote_base}/{satellite}/a/']
     try:
-        cycles_output = subprocess.check_output(cycle_cmd, text=True)
+        cycles_output = subprocess.check_output(cycle_cmd, env=os.environ, text=True)
     except subprocess.CalledProcessError as e:
         raise RuntimeError("Failed to list remote cycles.") from e
 
@@ -38,9 +38,9 @@ def get_latest_nc_file(satellite: str, local_dir: Path = Path("./rads_data")) ->
     last_cycle = sorted(cycle_dirs)[-1].strip('/')
 
     # Step 2: List .nc files in latest cycle
-    file_cmd = ['rsync', '--list-only', f'{remote_base}/{satellite}/a/{last_cycle}/']
+    file_cmd = ['rsync', f'{remote_base}/{satellite}/a/{last_cycle}/']
     try:
-        files_output = subprocess.check_output(file_cmd, text=True)
+        files_output = subprocess.check_output(file_cmd, env=os.environ, text=True)
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Failed to list files in {last_cycle}.") from e
 
@@ -55,6 +55,6 @@ def get_latest_nc_file(satellite: str, local_dir: Path = Path("./rads_data")) ->
     local_target = local_dir / latest_file
 
     download_cmd = ['rsync', '-avz', remote_file_path, str(local_target)]
-    subprocess.run(download_cmd, check=True)
+    subprocess.run(download_cmd, env=os.environ, check=True)
 
     return local_target
