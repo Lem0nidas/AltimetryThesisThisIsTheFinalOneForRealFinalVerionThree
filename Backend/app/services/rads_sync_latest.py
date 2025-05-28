@@ -6,16 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# RADS_PASS = os.getenv("RSYNC_PASSWORD")
-# if not RADS_PASS:
-#     raise RuntimeError("RSYNC_PASSWORD is not set in .env")
-
 # TODO Make the /rads_data directory accesable. I still get the error Permission denied.
-# TODO I don't want to type the rads server password everytime. Create an eviromental variable.
 def get_latest_nc_file(satellite: str, local_dir: Path = Path("./rads_data")) -> Path:
-    """
-    Downloads the latest .nc file for a given satellite from RADS server.
-    """
     remote_base = 'radsuser@rads.tudelft.nl::rads/data/'
 
     if not satellite:

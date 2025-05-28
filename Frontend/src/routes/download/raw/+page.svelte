@@ -1,6 +1,12 @@
+<!-- TODO CLEAN UP THE SCRIPT -->
+
 <script lang="ts">
+	import { requestDownload, requestLatestDownload } from "$lib/api/rads";
+
 	let selectedSatellite = '';
 	let responseMessage = '';
+	let downloadMessage = '';
+	let errorMessage = '';
 
 	const satellites = [
 		{ name: 'Geosat', code: 'gs' },
@@ -30,26 +36,11 @@
 		}
 
 		try {
-			const resA = await fetch('http://localhost:8000/api/download', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ satellite: selectedSatellite })
-			});
+			responseMessage = await requestDownload(selectedSatellite);
+			downloadMessage = await requestLatestDownload(selectedSatellite);
 
-			const dataA = await resA.json();
-			responseMessage = dataA.message || 'First Request sent!';
-
-			const resB = await fetch('http://localhost:8000/api/download_latest', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ satellite: selectedSatellite })
-			});
-
-			const dataB = await resB.json();
-			responseMessage = dataB.message || 'File Downloaded!';
 		} catch (err) {
-// TODO I get the error message even if the request is successful, need to fix this
-			responseMessage = 'Error contacting server.';
+			errorMessage = 'Error contacting server.';
 			console.error(err);
 		}
 	}
@@ -73,4 +64,16 @@
 
 {#if responseMessage}
 	<p>{responseMessage}</p>
+{/if}
+
+<hr>
+
+{#if downloadMessage}
+	<p>{downloadMessage}</p>
+{/if}
+
+<hr>
+
+{#if errorMessage}
+	<p>{errorMessage}</p>
 {/if}

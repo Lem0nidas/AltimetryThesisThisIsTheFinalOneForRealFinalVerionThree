@@ -29,17 +29,12 @@ async def download_data(request: DownloadRequest):
 
 @app.post("/api/download_latest")
 def download_raw_data(request: DownloadRequest):
-    # satellite = request.get("satellite")
     if not request.satellite:
         raise HTTPException(status_code=400, detail="Missing 'satellite' key")
 
     try:
-        file_path = get_latest_nc_file(request.satellite)
+        get_latest_nc_file(request.satellite)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    return FileResponse(
-        path=file_path,
-        media_type="application/x-netcdf",
-        filename=file_path.name
-    )
+    return {"message": f"Download for satellite {request.satellite} triggered"}
