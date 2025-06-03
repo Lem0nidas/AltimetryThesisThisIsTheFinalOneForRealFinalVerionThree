@@ -3,7 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
-from  services.rads_sync_latest import get_latest_nc_file
+from services.rads_sync_latest import get_latest_nc_file
+from services.rads_sync_custom import get_custom_nc_file
 
 
 app = FastAPI()
@@ -19,6 +20,11 @@ app.add_middleware(
 
 class DownloadRequest(BaseModel):
     satellite: str
+
+class CustomRequest(BaseModel):
+    satellite: str
+    cycle_num: str
+    pass_num: str
 
 @app.post("/api/download")
 async def download_data(request: DownloadRequest):
@@ -38,3 +44,15 @@ def download_raw_data(request: DownloadRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
     return {"message": f"Download for satellite {request.satellite} triggered"}
+
+@app.post("/api/download_custom")
+def download_custom_data(req: CustomRequest):
+    if not req.satellite:
+        raise HTTPException(status_code=400, detail="Missing 'satellite' key")
+    
+    try: 
+        get_custom_nc_file(req.satellite, req.cycle_num, req.pass_num)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+    return {"message": f"Received request for {req.satellite}/{req.cycle_num} data"}

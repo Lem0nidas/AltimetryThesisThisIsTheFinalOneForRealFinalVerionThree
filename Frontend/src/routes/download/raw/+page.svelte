@@ -1,12 +1,23 @@
 <!-- TODO CLEAN UP THE SCRIPT -->
 
 <script lang="ts">
-	import { requestDownload, requestLatestDownload } from "$lib/api/rads";
+	import { requestCustomDownload, requestDownload, requestLatestDownload } from "$lib/api/rads";
+	import { Satellite } from "@lucide/svelte";
 
-	let selectedSatellite = '';
-	let responseMessage = '';
-	let downloadMessage = '';
-	let errorMessage = '';
+	let selectedSatellite = $state('');
+	let selectedCycle = $state('');
+	let responseMessage = $state('');
+	let downloadMessage = $state('');
+	let customMessage = $state('');
+	let errorMessage = $state('');
+
+	let checked = $state(false);
+	let selectedPass = $derived.by(() => {
+		if (!checked) {
+			return '';
+		}
+	});
+
 
 	const satellites = [
 		{ name: 'Geosat', code: 'gs' },
@@ -36,8 +47,9 @@
 		}
 
 		try {
-			responseMessage = await requestDownload(selectedSatellite);
-			downloadMessage = await requestLatestDownload(selectedSatellite);
+			// responseMessage = await requestDownload(selectedSatellite);
+			// downloadMessage = await requestLatestDownload(selectedSatellite);
+			customMessage = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
 
 		} catch (err) {
 			errorMessage = 'Error contacting server.';
@@ -50,14 +62,28 @@
     Welcome to Download Raw Data page
 </h1>
 
-<form on:submit={handleSubmit}>
-	<label for="satellite">Choose a satellite:</label>
-	<select id="satellite" bind:value={selectedSatellite} required>
-		<option value="" disabled selected>Select one</option>
-		{#each satellites as sat}
-			<option value={sat.code}>{sat.name}</option>
-		{/each}
-	</select>
+<form onsubmit={handleSubmit}>
+	<fieldset>
+		<label for="satellite">Choose a satellite:</label>
+		<select id="satellite" bind:value={selectedSatellite} required>
+			<option value="" disabled selected>Select one</option>
+			{#each satellites as sat}
+				<option value={sat.code}>{sat.name}</option>
+			{/each}
+		</select>
+	</fieldset>
+
+	<fieldset>
+		<label for="cycle">Type the cycle number:</label>
+		<input type="text" id="cycle" bind:value={selectedCycle} placeholder="e.g. 015" />
+		<label for=pass-switch>
+			<input type="checkbox" id="pass-switch" name="pass-switch" role="switch" bind:checked />
+		</label>
+		{#if checked}
+			<label for="pass">Type the pass number:</label>
+			<input type="text" id="pass" bind:value={selectedPass} placeholder="e.g. 0234" />
+		{/if}
+	</fieldset>
 
 	<button type="submit">Submit</button>
 </form>
@@ -70,6 +96,12 @@
 
 {#if downloadMessage}
 	<p>{downloadMessage}</p>
+{/if}
+
+<hr>
+
+{#if customMessage}
+	<p>{customMessage}</p>
 {/if}
 
 <hr>
