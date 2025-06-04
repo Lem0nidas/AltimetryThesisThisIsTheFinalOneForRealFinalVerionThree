@@ -11,12 +11,18 @@
 	let customMessage = $state('');
 	let errorMessage = $state('');
 
-	let checked = $state(false);
+	let toggles = $state({
+		a: false,
+		b: false
+	});
+	// let checked = $state(false);
 	let selectedPass = $derived.by(() => {
-		if (!checked) {
+		if (!toggles.a) {
 			return '';
 		}
 	});
+
+	let checkedate = $state(false);
 
 
 	const satellites = [
@@ -76,12 +82,30 @@
 	<fieldset>
 		<label for="cycle">Type the cycle number:</label>
 		<input type="text" id="cycle" bind:value={selectedCycle} placeholder="e.g. 015" />
-		<label for=pass-switch>
-			<input type="checkbox" id="pass-switch" name="pass-switch" role="switch" bind:checked />
+	</fieldset>
+
+	<fieldset>
+		<label for="pass-switch">
+			<input type="checkbox" id="pass-switch" name="pass-switch" role="switch" bind:checked={toggles.a} />
+			Pick Specific Pass
 		</label>
-		{#if checked}
+		{#if toggles.a}
 			<label for="pass">Type the pass number:</label>
 			<input type="text" id="pass" bind:value={selectedPass} placeholder="e.g. 0234" />
+		{/if}
+	</fieldset>
+
+	<!-- TODO Create a date based download settings, logic, backed, EVERYTHING -->
+	<!-- TODO First make the download by date possible -->
+	<fieldset>
+		<label for="date-switch">
+			<input type="checkbox" id="date-switch" name="date-switch" role="switch" bind:checked={toggles.b} />
+			Date Based Download
+		</label>
+		{#if toggles.b}
+			<label for="date">Pick Date
+				<input type="date" id="date" name="date">
+			</label>
 		{/if}
 	</fieldset>
 

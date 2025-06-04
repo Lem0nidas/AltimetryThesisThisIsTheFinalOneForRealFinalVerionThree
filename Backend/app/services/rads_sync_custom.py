@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 
 
 
-# TODO Mirror data based on satellite, cycle and pass numbers.
 # TODO Make improvments
 def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", save_dir: Path = Path("./rads_data")) -> bool:
     remote_base = 'radsuser@rads.tudelft.nl::rads/data/'
@@ -41,7 +40,6 @@ def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", save_
     else:
         remote_file_path = f'{remote_base}/{satellite}/a/{cycle_num}/'
         
-    # remote_file_path = f'{remote_base}/{satellite}/a/{cycle_num}'
     local_target = save_dir / satellite / cycle_num # FIXME Files get downloaded in wrong folder
     local_target.mkdir(parents=True, exist_ok=True)
 
