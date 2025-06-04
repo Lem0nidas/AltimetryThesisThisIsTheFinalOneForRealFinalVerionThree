@@ -4,11 +4,11 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-
+load_dotenv()
 
 # TODO Make improvments
 def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", save_dir: Path = Path("./rads_data")) -> bool:
-    remote_base = 'radsuser@rads.tudelft.nl::rads/data/'
+    remote_base = os.getenv("RADS_REMOTE_BASE")
     save_dir.mkdir(parents=True, exist_ok=True)
     cycle_num = "".join(["c", cycle_num])
     pass_num = "".join(["p", pass_num])

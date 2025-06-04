@@ -54,8 +54,8 @@
 
 		try {
 			// responseMessage = await requestDownload(selectedSatellite);
-			// downloadMessage = await requestLatestDownload(selectedSatellite);
-			customMessage = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
+			downloadMessage = await requestLatestDownload(selectedSatellite);
+			// customMessage = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
 
 		} catch (err) {
 			errorMessage = 'Error contacting server.';
