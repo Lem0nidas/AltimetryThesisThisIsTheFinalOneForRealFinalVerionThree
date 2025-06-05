@@ -8,7 +8,7 @@ load_dotenv()
 
 # TODO Make the /rads_data directory accesable. I still get the error Permission denied.
 def get_latest_nc_file(satellite: str, local_dir: Path = Path("./rads_data")) -> Path:
-    remote_base = 'radsuser@rads.tudelft.nl::rads/data/'
+    remote_base = os.getenv("RADS_REMOTE_BASE")
 
     if not satellite:
         raise ValueError("Satellite not specified.")
