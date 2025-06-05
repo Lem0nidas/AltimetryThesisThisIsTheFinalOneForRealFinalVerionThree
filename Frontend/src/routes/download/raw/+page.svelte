@@ -1,7 +1,7 @@
 <!-- TODO CLEAN UP THE SCRIPT -->
 
 <script lang="ts">
-	import { requestCustomDownload, requestDownload, requestLatestDownload } from "$lib/api/rads";
+	import { requestCustomDownload, requestDownload, requestLatestDownload, requestDateDownload } from "$lib/api/rads";
 	import { Satellite } from "@lucide/svelte";
 
 	let selectedSatellite = $state('');
@@ -10,19 +10,22 @@
 	let downloadMessage = $state('');
 	let customMessage = $state('');
 	let errorMessage = $state('');
+	let dateMessage = $state('');
 
 	let toggles = $state({
 		a: false,
 		b: false
 	});
-	// let checked = $state(false);
+	
 	let selectedPass = $derived.by(() => {
 		if (!toggles.a) {
 			return '';
 		}
 	});
 
-	let checkedate = $state(false);
+	let selectedDate = $derived.by(() => {
+		if (!toggles.b) return 'Date not selected';
+	});
 
 
 	const satellites = [
@@ -52,11 +55,16 @@
 			return;
 		}
 
+		if (!selectedDate) {
+			console.log('Please pick a date')
+		}
+		// console.log(typeof selectedDate)
+
 		try {
 			// responseMessage = await requestDownload(selectedSatellite);
-			downloadMessage = await requestLatestDownload(selectedSatellite);
+			// downloadMessage = await requestLatestDownload(selectedSatellite);
 			// customMessage = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
-
+			dateMessage = await requestDateDownload(selectedSatellite, selectedDate);
 		} catch (err) {
 			errorMessage = 'Error contacting server.';
 			console.error(err);
@@ -104,7 +112,7 @@
 		</label>
 		{#if toggles.b}
 			<label for="date">Pick Date
-				<input type="date" id="date" name="date">
+				<input type="date" id="date" name="date" bind:value={selectedDate} />
 			</label>
 		{/if}
 	</fieldset>
