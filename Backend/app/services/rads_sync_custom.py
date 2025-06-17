@@ -7,17 +7,19 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # TODO Make improvments
-def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", save_dir: Path = Path("./rads_data")) -> bool:
+# FIXME Make phase selection dynamic
+# FIXME set the default lenght of digits for cycles and passes
+def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", save_dir: Path = Path("./rads_data")) -> None:
+    
+    if not satellite:
+        raise ValueError("Satellite not specified")
+    if not cycle_num:
+        raise ValueError("Cycle not specified")
+    
     remote_base = os.getenv("RADS_REMOTE_BASE")
     save_dir.mkdir(parents=True, exist_ok=True)
     cycle_num = "".join(["c", cycle_num])
     pass_num = "".join(["p", pass_num])
-    
-    if not satellite:
-        raise ValueError("Satellite not specified")
-    
-    if not cycle_num:
-        raise ValueError("Cycle not specified")
     
     file_cmd = ['rsync', f'{remote_base}/{satellite}/a/{cycle_num}/']
     try:
@@ -47,4 +49,4 @@ def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", save_
     download_cmd = ['rsync', '-avz', '--del', remote_file_path, str(local_target)]
     subprocess.run(download_cmd, env=os.environ, check=True)
     
-    return True
+    return None
