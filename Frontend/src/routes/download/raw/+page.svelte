@@ -136,6 +136,10 @@
 	<p>{responseMessage}</p>
 {/if}
 
+{#if responseMessage}
+	<p>{responseMessage}</p>
+{/if}
+
 <hr>
 
 {#if downloadMessage}
