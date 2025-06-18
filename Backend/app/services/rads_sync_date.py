@@ -3,23 +3,23 @@ from pathlib import Path
 from dotenv import find_dotenv
 from datetime import datetime, timedelta, timezone
 from services.rads_sync_custom import get_custom_nc_file
-from services.phase_mapping import parse_rads_datetime, read_first_last_pass
+from utils.phase_mapping import parse_rads_datetime, read_first_last_pass
 
 
 find_dotenv()
 
 # TODO Make improvments
-def get_date_nc_file(satellite: str, date: str, save_dir: Path = Path("./rads_data")) -> None:
+def get_date_nc_file(satellite: str, start_date: str, end_date: str = "", save_dir: Path = Path("./rads_data")) -> None:
 
     if not satellite:
         raise ValueError("Satellite not specified")
-    if not date:
+    if not start_date:
         raise ValueError("Date not specified")
 
     cyc_path = Path(str(os.getenv("RADS_CYCLES")))
     pass_path = Path(str(os.getenv("RADS_PASSES")))
     save_dir.mkdir(parents=True, exist_ok=True)
-    user_date = parse_rads_datetime(date)
+    user_date = parse_rads_datetime(start_date)
     sat_phases = [f.name for f in cyc_path.iterdir() if f.is_file() and f.name.startswith(satellite)]
 
     for file in sat_phases:

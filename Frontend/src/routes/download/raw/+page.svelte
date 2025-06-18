@@ -14,7 +14,8 @@
 
 	let toggles = $state({
 		a: false,
-		b: false
+		b: false,
+		c: false,
 	});
 	
 	let selectedPass = $derived.by(() => {
@@ -23,8 +24,12 @@
 		}
 	});
 
-	let selectedDate = $derived.by(() => {
-		if (!toggles.b) return 'Date not selected';
+	let selectedStartDate = $derived.by(() => {
+		if (!toggles.b) return 'Start Date not selected';
+	});
+	
+	let selectedEndDate = $derived.by(() => {
+		if (!toggles.c) return 'End ate not selected';
 	});
 
 
@@ -55,16 +60,15 @@
 			return;
 		}
 
-		if (!selectedDate) {
+		if (!selectedStartDate) {
 			console.log('Please pick a date')
 		}
-		// console.log(typeof selectedDate)
 
 		try {
-			// responseMessage = await requestDownload(selectedSatellite);
+			responseMessage = await requestDownload(selectedSatellite);
 			// downloadMessage = await requestLatestDownload(selectedSatellite);
 			// customMessage = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
-			dateMessage = await requestDateDownload(selectedSatellite, selectedDate);
+			dateMessage = await requestDateDownload(selectedSatellite, selectedStartDate, selectedEndDate);
 		} catch (err) {
 			errorMessage = 'Error contacting server.';
 			console.error(err);
@@ -110,30 +114,28 @@
 			Date Based Download
 		</label>
 		{#if toggles.b}
-			<label for="date">Pick Date
-				<input type="date" id="date" name="date" bind:value={selectedDate} />
+			<label for="date">Pick Start Date
+				<input type="date" id="date" name="date" bind:value={selectedStartDate} />
 			</label>
 		{/if}
 	</fieldset>
 
+	{#if toggles.b}
 		<fieldset>
-		<label for="end-date-switch">
-			<input type="checkbox" id="end-date-switch" name="end-date-switch" role="switch" bind:checked={toggles.b} />
-			Date Based Download
-		</label>
-		{#if toggles.b}
-			<label for="date">Pick Date
-				<input type="date" id="date" name="date" bind:value={selectedDate} />
+			<label for="end-date-switch">
+				<input type="checkbox" id="end-date-switch" name="end-date-switch" role="switch" bind:checked={toggles.c} />
+				End Date
 			</label>
-		{/if}
-	</fieldset>
+			{#if toggles.c}
+				<label for="date">Pick End Date
+					<input type="date" id="date" name="date" bind:value={selectedEndDate} />
+				</label>
+			{/if}
+		</fieldset>
+	{/if}
 
 	<button type="submit">Submit</button>
 </form>
-
-{#if responseMessage}
-	<p>{responseMessage}</p>
-{/if}
 
 {#if responseMessage}
 	<p>{responseMessage}</p>

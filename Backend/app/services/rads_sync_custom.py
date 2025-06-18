@@ -2,7 +2,7 @@ import subprocess
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from services.phase_mapping import locate_phase
+from utils.phase_mapping import locate_phase
 
 load_dotenv()
 

@@ -1,12 +1,11 @@
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
-from pydantic import BaseModel
 
 from services.rads_sync_latest import get_latest_nc_file
 from services.rads_sync_custom import get_custom_nc_file
 from services.rads_sync_date import get_date_nc_file
 
+from models.request_models import *
 
 app = FastAPI()
 
@@ -19,17 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-class DownloadRequest(BaseModel):
-    satellite: str
-
-class CustomRequest(BaseModel):
-    satellite: str
-    cycle_num: str
-    pass_num: str
-
-class DateRequest(BaseModel):
-    satellite: str
-    date: str  # Format: YYYY-MM-DD
 
 @app.post("/api/download")
 async def download_data(request: DownloadRequest):
@@ -68,8 +56,8 @@ def download_by_date(req: DateRequest):
         raise HTTPException(status_code=400, detail="Missing 'satellite' key")
     
     try:
-        get_date_nc_file(req.satellite, req.date)
+        get_date_nc_file(req.satellite, req.start_date, req.end_date)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-    return {"message": f"Reicived request for {req.satellite} with date {req.date}"}
+    return {"message": f"Reicived request for {req.satellite} with start date {req.start_date}"}

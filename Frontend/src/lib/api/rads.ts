@@ -44,21 +44,20 @@ export async function requestCustomDownload(satellite: string, cycle: string, pa
 }
 
 
-export async function requestDateDownload(satellite: string, date: string | undefined): Promise<string> {
-    // const safeDate = date ?? console.warn('No date provided, skipping date download request.');
+export async function requestDateDownload(satellite: string, startDate: string = "", endDate: string = ""): Promise<string> {
     
-    if (!date || date == "Date not selected") {
+    if (!startDate || startDate == "Start Date not selected") {
         console.warn('No date provided, skipping date download request.');
         return 'No date provided, skipping date download request.';
     }
     const response = await fetch('http://localhost:8000/api/download_date', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', },
-        body: JSON.stringify({ satellite, date }),
+        body: JSON.stringify({ satellite, start_date: startDate, end_date: endDate }),
     });
 
     if (!response.ok) {
-        throw new Error(`Failed to get the data for ${satellite} on ${date}: ${response.statusText}`);
+        throw new Error(`Failed to get the data for ${satellite} on ${startDate}: ${response.statusText}`);
     }
 
     const data = await response.json();
