@@ -105,8 +105,20 @@
 
 	<!-- TODO Create a date based download settings, logic, backed, EVERYTHING -->
 	<fieldset>
-		<label for="date-switch">
-			<input type="checkbox" id="date-switch" name="date-switch" role="switch" bind:checked={toggles.b} />
+		<label for="start-date-switch">
+			<input type="checkbox" id="start-date-switch" name="start-date-switch" role="switch" bind:checked={toggles.b} />
+			Date Based Download
+		</label>
+		{#if toggles.b}
+			<label for="date">Pick Date
+				<input type="date" id="date" name="date" bind:value={selectedDate} />
+			</label>
+		{/if}
+	</fieldset>
+
+		<fieldset>
+		<label for="end-date-switch">
+			<input type="checkbox" id="end-date-switch" name="end-date-switch" role="switch" bind:checked={toggles.b} />
 			Date Based Download
 		</label>
 		{#if toggles.b}
