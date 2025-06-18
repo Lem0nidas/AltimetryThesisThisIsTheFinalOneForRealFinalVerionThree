@@ -104,7 +104,6 @@
 	</fieldset>
 
 	<!-- TODO Create a date based download settings, logic, backed, EVERYTHING -->
-	<!-- TODO First make the download by date possible -->
 	<fieldset>
 		<label for="start-date-switch">
 			<input type="checkbox" id="start-date-switch" name="start-date-switch" role="switch" bind:checked={toggles.b} />
