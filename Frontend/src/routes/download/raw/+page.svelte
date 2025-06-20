@@ -1,37 +1,31 @@
-<!-- TODO CLEAN UP THE SCRIPT -->
-
 <script lang="ts">
-	import { requestCustomDownload, requestDownload, requestLatestDownload, requestDateDownload } from "$lib/api/rads";
+	import {
+		requestCustomDownload,
+		requestDownload,
+		requestLatestDownload,
+		requestDateDownload
+	} from "$lib/api/rads";
 	import { Satellite } from "@lucide/svelte";
 
 	let selectedSatellite = $state('');
 	let selectedCycle = $state('');
-	let responseMessage = $state('');
-	let downloadMessage = $state('');
-	let customMessage = $state('');
-	let errorMessage = $state('');
-	let dateMessage = $state('');
+	let selectedPass = $state('');
+	let selectedStartDate = $state('');
+	let selectedEndDate = $state('');
 
 	let toggles = $state({
-		a: false,
-		b: false,
-		c: false,
+		pass: false,
+		startDate: false,
+		endDate: false,
 	});
 	
-	let selectedPass = $derived.by(() => {
-		if (!toggles.a) {
-			return '';
-		}
+	let messages = $state({
+		response: '',
+		error: '',
+		download: '',
+		custom: '',
+		date: '',
 	});
-
-	let selectedStartDate = $derived.by(() => {
-		if (!toggles.b) return 'Start date not selected';
-	});
-	
-	let selectedEndDate = $derived.by(() => {
-		if (!toggles.c) return 'End date not selected';
-	});
-
 
 	const satellites = [
 		{ name: 'Geosat', code: 'gs' },
@@ -56,21 +50,24 @@
 		event.preventDefault();
 
 		if (!selectedSatellite) {
-			responseMessage = 'Please select a satellite.';
+			messages.response = 'Please select a satellite.';
 			return;
 		}
 
-		if (!selectedStartDate) {
-			console.log('Please pick a date')
-		}
-
 		try {
-			responseMessage = await requestDownload(selectedSatellite);
-			// downloadMessage = await requestLatestDownload(selectedSatellite);
-			// customMessage = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
-			dateMessage = await requestDateDownload(selectedSatellite, selectedStartDate, selectedEndDate);
+			messages.response = await requestDownload(selectedSatellite);
+			messages.download = await requestLatestDownload(selectedSatellite);
+			messages.custom = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
+			
+			if (toggles.startDate && selectedStartDate) {
+				messages.date = await requestDateDownload(
+					selectedSatellite,
+					selectedStartDate,
+					toggles.endDate ? selectedEndDate : ''
+				);
+			}
 		} catch (err) {
-			errorMessage = 'Error contacting server.';
+			messages.error = 'Error contacting server.';
 			console.error(err);
 		}
 	}
@@ -98,63 +95,108 @@
 
 	<fieldset>
 		<label for="pass-switch">
-			<input type="checkbox" id="pass-switch" name="pass-switch" role="switch" bind:checked={toggles.a} />
+			<input type="checkbox" name="pass-switch" role="switch" bind:checked={toggles.pass} />
 			Pick Specific Pass
 		</label>
-		{#if toggles.a}
-			<label for="pass">Type the pass number:</label>
+		{#if toggles.pass}
+			<label for="pass">Pass number:</label>
 			<input type="text" id="pass" bind:value={selectedPass} placeholder="e.g. 0234" />
 		{/if}
 	</fieldset>
 
-	<!-- TODO Create a date based download settings, logic, backed, EVERYTHING -->
 	<fieldset>
 		<label for="start-date-switch">
-			<input type="checkbox" id="start-date-switch" name="start-date-switch" role="switch" bind:checked={toggles.b} />
+			<input type="checkbox" name="start-date-switch" role="switch" bind:checked={toggles.startDate} />
 			Date Based Download
 		</label>
-		{#if toggles.b}
-			<label for="date">Pick Start Date
-				<input type="date" id="date" name="date" bind:value={selectedStartDate} />
+		{#if toggles.startDate}
+			<label for="start-date">Pick Start Date:</label>
+			<input type="date" name="start-date" bind:value={selectedStartDate} />
+
+			<label for="end-date-switch">
+				<input type="checkbox" name="end-date-switch" role="switch" bind:checked={toggles.endDate} />
+				Include End Date
 			</label>
+
+			{#if toggles.endDate}
+				<label for="end-date">Pick End Date:</label>
+				<input type="date" name="end-date" bind:value={selectedEndDate} />
+			{/if}
 		{/if}
 	</fieldset>
-
-	{#if toggles.b}
-		<fieldset>
-			<label for="end-date-switch">
-				<input type="checkbox" id="end-date-switch" name="end-date-switch" role="switch" bind:checked={toggles.c} />
-				End Date
-			</label>
-			{#if toggles.c}
-				<label for="date">Pick End Date
-					<input type="date" id="date" name="date" bind:value={selectedEndDate} />
-				</label>
-			{/if}
-		</fieldset>
-	{/if}
 
 	<button type="submit">Submit</button>
 </form>
 
-{#if responseMessage}
-	<p>{responseMessage}</p>
-{/if}
+{#each Object.entries(messages) as [key, value]}
+	{#if value}
+		<hr />
+		<p>{value}</p>
+	{/if}
+{/each}
 
-<hr>
 
-{#if downloadMessage}
-	<p>{downloadMessage}</p>
-{/if}
+<style>
+	/* Wrapper to center everything */
+	form {
+		max-width: 600px;
+		margin: 2rem auto;
+		padding: 2rem;
+		border-radius: 10px;
+		background-color: #1c1f26;
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+	}
 
-<hr>
+	h1 {
+		text-align: center;
+		margin-top: 1.5rem;
+		color: white;
+	}
 
-{#if customMessage}
-	<p>{customMessage}</p>
-{/if}
+	fieldset {
+		border: none;
+		margin-bottom: 1.5rem;
+	}
 
-<hr>
+	label {
+		display: block;
+		margin-bottom: 0.5rem;
+		color: #ccc;
+		font-weight: 500;
+	}
 
-{#if errorMessage}
-	<p>{errorMessage}</p>
-{/if}
+	input[type="text"],
+	input[type="date"],
+	select {
+		width: 100%;
+		padding: 0.5rem;
+		border-radius: 5px;
+		border: 1px solid #444;
+		background-color: #1f1f1f;
+		color: white;
+	}
+
+	input[type="checkbox"] {
+		margin-right: 0.5rem;
+	}
+
+	button {
+		width: 100%;
+		padding: 0.75rem;
+		background-color: #007baf;
+		color: white;
+		font-weight: bold;
+		border: none;
+		border-radius: 5px;
+		cursor: pointer;
+	}
+
+	button:hover {
+		background-color: #006799;
+	}
+
+	p {
+		text-align: center;
+		color: #ddd;
+	}
+</style>
