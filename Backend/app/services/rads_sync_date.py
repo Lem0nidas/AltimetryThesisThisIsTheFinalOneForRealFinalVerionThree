@@ -9,7 +9,11 @@ from utils.phase_mapping import parse_rads_datetime, read_first_last_pass
 find_dotenv()
 
 # TODO Make improvments
-def get_date_nc_file(satellite: str, start_date: str, end_date: str = "", save_dir: Path = Path("./rads_data")) -> None:
+def get_date_nc_file(
+        satellite: str, 
+        start_date: str, 
+        end_date: str = "", 
+        save_dir: Path = Path("./rads_data")) -> None:
 
     if not satellite:
         raise ValueError("Satellite not specified")

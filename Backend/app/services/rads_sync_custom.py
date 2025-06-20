@@ -7,9 +7,12 @@ from utils.phase_mapping import locate_phase
 load_dotenv()
 
 # TODO Make improvments
-# FIXME Improve dynamic phase selection
-# FIXME set the default lenght of digits for cycles and passes
-def get_custom_nc_file(satellite: str, cycle_num: str, pass_num: str = "", phase_code = "", save_dir: Path = Path("./rads_data")) -> None:
+def get_custom_nc_file(
+        satellite: str, 
+        cycle_num: str, 
+        pass_num: str = "", 
+        phase_code = "", 
+        save_dir: Path = Path("./rads_data")) -> None:
     
     if not satellite:
         raise ValueError("Satellite not specified")

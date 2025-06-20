@@ -25,11 +25,11 @@
 	});
 
 	let selectedStartDate = $derived.by(() => {
-		if (!toggles.b) return 'Start Date not selected';
+		if (!toggles.b) return 'Start date not selected';
 	});
 	
 	let selectedEndDate = $derived.by(() => {
-		if (!toggles.c) return 'End ate not selected';
+		if (!toggles.c) return 'End date not selected';
 	});
 
 
