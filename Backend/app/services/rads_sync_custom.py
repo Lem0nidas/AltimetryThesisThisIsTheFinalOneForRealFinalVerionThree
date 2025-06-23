@@ -12,7 +12,8 @@ def get_custom_nc_file(
         cycle_num: str, 
         pass_num: str = "", 
         phase_code = "", 
-        save_dir: Path = Path("./rads_data")) -> None:
+        save_dir: Path = Path("./rads_data")
+        ) -> None:
     
     if not satellite:
         raise ValueError("Satellite not specified")
@@ -42,7 +43,7 @@ def get_custom_nc_file(
     else:
         remote_file_path = f'{remote_base}/{satellite}/{phase_code}/{cycle_num}/'
         
-    local_target = save_dir / satellite / cycle_num # FIXME Files get downloaded in wrong folder
+    local_target = save_dir / satellite / cycle_num
     local_target.mkdir(parents=True, exist_ok=True)
 
     
