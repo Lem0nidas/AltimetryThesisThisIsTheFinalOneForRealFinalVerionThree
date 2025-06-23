@@ -11,14 +11,27 @@
 
 
 	let menuOpen = false;
+	let fadingOut = false;
 
 	function toggleMenu() {
-		menuOpen = !menuOpen;
+		if (menuOpen) {
+			fadingOut = true;
+			setTimeout(() => {
+				menuOpen = false;
+				fadingOut = false;
+			}, 500);
+		} else {
+			menuOpen = true;
+		}
 	}
 
-    function closeMenu() {
-        menuOpen = false;
-    }
+	function closeMenu() {
+		fadingOut = true;
+		setTimeout(() => {
+			menuOpen = false;
+			fadingOut = false;
+		}, 500);
+	}
 </script>
 
 
@@ -31,7 +44,7 @@
 
 	<!-- Dropdown Menu -->
 	{#if menuOpen}
-		<div class="dropdown" class:open={menuOpen}>
+		<div class="dropdown" class:open={menuOpen} class:fade-out={fadingOut}>
 			<a href="/" on:click={closeMenu}><Home /> Home</a>
 			<a href="/download" on:click={closeMenu}><Download /> <span>Download</span></a>
 			<a href="/viewer" on:click={closeMenu}><View /> <span>NetCDF Viewer</span></a>
@@ -45,6 +58,16 @@
 
 
 <style>
+	@keyframes fadeIn {
+		from { opacity: 0; }
+		to { opacity: 1; }
+	}
+
+	@keyframes fadeOut {
+		from { opacity: 1; }
+		to { opacity: 0; }
+	}
+
 	nav {
 		display: flex;
 		align-items: center;
@@ -81,7 +104,7 @@
 		color: #ccc
 	}
 
-    .dropdown {
+	.dropdown {
 		position: absolute;
 		top: 100%;
 		left: 0;
@@ -95,17 +118,11 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		z-index: 100;
-		/* TODO Add smooth fade in */
-		transition: opacity 0.2s ease, transform 0.2s ease;
-		opacity: 0;
-		pointer-events: none;
-		transform: translateY(-5px);
+		animation: fadeIn 0.5s ease-in-out forwards;
 	}
 
-	.dropdown.open {
-		opacity: 1;
-		pointer-events: auto;
-		transform: translateY(0);
+	.dropdown.fade-out {
+		animation: fadeOut 0.5s ease-in-out forwards;
 	}
 
 	.dropdown a {
