@@ -4,7 +4,7 @@
 		requestDownload,
 		requestLatestDownload,
 		requestDateDownload
-	} from "$lib/api/rads";
+	} from "$lib";
 	import { Satellite } from "@lucide/svelte";
 
 	let selectedSatellite = $state('');
@@ -25,6 +25,12 @@
 		download: '',
 		custom: '',
 		date: '',
+	});
+
+	$effect(() => {
+		if (!toggles.pass) {
+			selectedPass = '';
+		}
 	});
 
 	const satellites = [
@@ -55,17 +61,17 @@
 		}
 
 		try {
-			messages.response = await requestDownload(selectedSatellite);
-			messages.download = await requestLatestDownload(selectedSatellite);
-			messages.custom = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
+			messages.response = await requestDownload(selectedSatellite, selectedCycle, selectedPass);
+			// messages.download = await requestLatestDownload(selectedSatellite);
+			// messages.custom = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
 			
-			if (toggles.startDate && selectedStartDate) {
-				messages.date = await requestDateDownload(
-					selectedSatellite,
-					selectedStartDate,
-					toggles.endDate ? selectedEndDate : ''
-				);
-			}
+			// if (toggles.startDate && selectedStartDate) {
+			// 	messages.date = await requestDateDownload(
+			// 		selectedSatellite,
+			// 		selectedStartDate,
+			// 		toggles.endDate ? selectedEndDate : ''
+			// 	);
+			// }
 		} catch (err) {
 			messages.error = 'Error contacting server.';
 			console.error(err);
