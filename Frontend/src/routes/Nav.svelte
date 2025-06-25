@@ -9,49 +9,30 @@
 	import CircleHelp from '/home/leon/node_modules/@lucide/svelte/dist/icons/circle-help';
 	import Mail from '/home/leon/node_modules/@lucide/svelte/dist/icons/mail';
 
+	import { fade } from 'svelte/transition';
 
-	let menuOpen = false;
-	let fadingOut = false;
+	let menuOpen = $state(false);
 
 	function toggleMenu() {
-		if (menuOpen) {
-			fadingOut = true;
-			setTimeout(() => {
-				menuOpen = false;
-				fadingOut = false;
-			}, 500);
-		} else {
-			menuOpen = true;
-		}
-	}
-
-	function closeMenu() {
-		fadingOut = true;
-		setTimeout(() => {
-			menuOpen = false;
-			fadingOut = false;
-		}, 500);
+		menuOpen = !menuOpen
 	}
 </script>
 
 
 <nav>
-	<!-- Hamburger Menu -->
-	<button class="menu-btn" on:click={toggleMenu}><Menu /></button>
+	<button class="menu-btn" onclick={() => menuOpen = !menuOpen}><Menu /></button>
 
-	<!-- Center Title -->
 	<div class="title">Altimetry Portal</div>
 
-	<!-- Dropdown Menu -->
 	{#if menuOpen}
-		<div class="dropdown" class:open={menuOpen} class:fade-out={fadingOut}>
-			<a href="/" on:click={closeMenu}><Home /> Home</a>
-			<a href="/download" on:click={closeMenu}><Download /> <span>Download</span></a>
-			<a href="/viewer" on:click={closeMenu}><View /> <span>NetCDF Viewer</span></a>
-			<a href="/info" on:click={closeMenu}><Info /> <span>More Info</span></a>
-			<a href="/about" on:click={closeMenu}><BookText /> <span>About</span></a>
-			<a href="/help" on:click={closeMenu}><CircleHelp /> <span>Help</span></a>
-			<a href="/contact" on:click={closeMenu}><Mail /> <span>Contact</span></a>
+		<div class="dropdown" transition:fade={{ duration: 500 }}>
+			<a href="/" onclick={toggleMenu}><Home /> Home</a>
+			<a href="/download" onclick={toggleMenu}><Download /> <span>Download</span></a>
+			<a href="/viewer" onclick={toggleMenu}><View /> <span>NetCDF Viewer</span></a>
+			<a href="/info" onclick={toggleMenu}><Info /> <span>More Info</span></a>
+			<a href="/about" onclick={toggleMenu}><BookText /> <span>About</span></a>
+			<a href="/help" onclick={toggleMenu}><CircleHelp /> <span>Help</span></a>
+			<a href="/contact" onclick={toggleMenu}><Mail /> <span>Contact</span></a>
 		</div>
 	{/if}
 </nav>
@@ -87,7 +68,7 @@
 		transform: translateX(-50%);
 		font-size: 1.25rem;
 		font-weight: bold;
-        color: var(--primary,);
+		color: var(--primary,);
 		white-space: nowrap;
 	}
 
@@ -118,11 +99,6 @@
 		flex-direction: column;
 		gap: 0.5rem;
 		z-index: 100;
-		animation: fadeIn 0.5s ease-in-out forwards;
-	}
-
-	.dropdown.fade-out {
-		animation: fadeOut 0.5s ease-in-out forwards;
 	}
 
 	.dropdown a {
