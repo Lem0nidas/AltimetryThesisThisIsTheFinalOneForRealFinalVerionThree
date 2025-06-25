@@ -31,7 +31,10 @@ class CustomRequest(DownloadRequest):
     @field_validator('pass_num', mode='after')
     @classmethod
     def validate_pass(cls, value: str) -> str:
-        if not value.isdigit() or not '': #FIXME pass must be optional ... This throws error
+        if value == "":
+            return ''
+        
+        if not value.isdigit():
             raise ValueError("Pass number must be numeric!")
         
         return value.zfill(4)

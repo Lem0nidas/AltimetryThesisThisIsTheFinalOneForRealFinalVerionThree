@@ -6,8 +6,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# TODO Make the /rads_data directory accesable. I still get the error Permission denied.
-# FIXME Download only from "a" phase.
+
 def get_latest_nc_file(
         satellite: str, 
         local_dir: Path = Path("./rads_data")
