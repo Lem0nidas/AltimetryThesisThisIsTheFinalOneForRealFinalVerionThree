@@ -5,9 +5,10 @@
 		requestLatestDownload,
 		requestDateDownload
 	} from "$lib";
-	import { Satellite } from "@lucide/svelte";
+	import type { RADSSatellite } from "$lib/data/satellites";
+	import { satellites } from "$lib/data/satellites";
 
-	let selectedSatellite = $state('');
+	let selectedSatellite: RADSSatellite = $state({name: '', code: ''});
 	let selectedCycle = $state('');
 	let selectedPass = $state('');
 	let selectedStartDate = $state('');
@@ -33,25 +34,6 @@
 		}
 	});
 
-	const satellites = [
-		{ name: 'Geosat', code: 'gs' },
-		{ name: 'ERS-1', code: 'e1' },
-		{ name: 'TOPEX', code: 'tx' },
-		{ name: 'Poseidon', code: 'pn' },
-		{ name: 'ERS-2', code: 'e2' },
-		{ name: 'GFO', code: 'g1' },
-		{ name: 'Jason-1', code: 'j1' },
-		{ name: 'Envisat', code: 'n1' },
-		{ name: 'Jason-2', code: 'j2' },
-		{ name: 'CryoSat-2', code: 'c2' },
-		{ name: 'SARAL', code: 'sa' },
-		{ name: 'Jason-3', code: 'j3' },
-		{ name: 'Sentinel-3A', code: '3a' },
-		{ name: 'Sentinel-3B', code: '3b' },
-		{ name: 'Sentinel-6A', code: '6a' },
-		{ name: 'SWOT nadir', code: 'sw' }
-	];
-
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
@@ -61,13 +43,13 @@
 		}
 
 		try {
-			messages.response = await requestDownload(selectedSatellite, selectedCycle, selectedPass);
-			// messages.download = await requestLatestDownload(selectedSatellite);
-			// messages.custom = await requestCustomDownload(selectedSatellite, selectedCycle, selectedPass);
+			messages.response = await requestDownload(selectedSatellite.code, selectedCycle, selectedPass);
+			// messages.download = await requestLatestDownload(selectedSatellite.code);
+			// messages.custom = await requestCustomDownload(selectedSatellite.code, selectedCycle, selectedPass);
 			
 			// if (toggles.startDate && selectedStartDate) {
 			// 	messages.date = await requestDateDownload(
-			// 		selectedSatellite,
+			// 		selectedSatellite.code,
 			// 		selectedStartDate,
 			// 		toggles.endDate ? selectedEndDate : ''
 			// 	);
@@ -89,7 +71,7 @@
 		<select id="satellite" bind:value={selectedSatellite} required>
 			<option value="" disabled selected>Select one</option>
 			{#each satellites as sat}
-				<option value={sat.code}>{sat.name}</option>
+				<option value={sat}>{sat.name}</option>
 			{/each}
 		</select>
 	</fieldset>

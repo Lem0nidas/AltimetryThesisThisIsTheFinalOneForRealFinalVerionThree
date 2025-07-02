@@ -1,10 +1,13 @@
 <script lang="ts">
     import type { RADSVariable } from "$lib/data/variables";
+    import type { RADSSatellite } from "$lib/data/satellites";
     import { variables } from "$lib/data/variables";
+    import { satellites } from "$lib/data/satellites";
+    import { X } from "@lucide/svelte";
 
-    let selectedSatellite = $state('');
-    let listBoxItems: string[] = $state([]);
+    let selectedSatellite: RADSSatellite = $state({name: '', code: ''});
     let selectedVariable: RADSVariable | null = $state(null);
+    let listBoxItems: string[] = $state([]);
 
     let messages = $state({
         response: '',
@@ -13,25 +16,6 @@
         custom: '',
         date: '',
     })
-
-    const satellites = [
-		{ name: 'Geosat', code: 'gs' },
-		{ name: 'ERS-1', code: 'e1' },
-		{ name: 'TOPEX', code: 'tx' },
-		{ name: 'Poseidon', code: 'pn' },
-		{ name: 'ERS-2', code: 'e2' },
-		{ name: 'GFO', code: 'g1' },
-		{ name: 'Jason-1', code: 'j1' },
-		{ name: 'Envisat', code: 'n1' },
-		{ name: 'Jason-2', code: 'j2' },
-		{ name: 'CryoSat-2', code: 'c2' },
-		{ name: 'SARAL', code: 'sa' },
-		{ name: 'Jason-3', code: 'j3' },
-		{ name: 'Sentinel-3A', code: '3a' },
-		{ name: 'Sentinel-3B', code: '3b' },
-		{ name: 'Sentinel-6A', code: '6a' },
-		{ name: 'SWOT nadir', code: 'sw' }
-    ];
 
 
     function addToList() {
@@ -63,31 +47,28 @@
         <select id="satellite" bind:value={selectedSatellite}>
             <option value="" disabled selected>Select one</option>
             {#each satellites as sat}
-                <option value={sat.code}>{sat.name}</option>
+                <option value={sat}>{sat.name}</option>
             {/each}
         </select>
     </fieldset>
 
     <fieldset>
-        <label for=""></label>
-    </fieldset>
-
-    <fieldset>
         <label for="listbox">Selected Items:</label>
-        <ul id="listbox" style="max-height: 8rem; overflow-y: auto;">
-            {#each listBoxItems as items, index }
-                <li style="display: flex; align-items: center; justify-content: space-between;">
-                    <span>{items}</span>
-                    <button
-                        onclick={() => removeFromList(index)}
-                        style="margin-left: 0.5rem; background: none; border: none; color: red; cursor: pointer;" 
-                        aria-label="Remove item"
-                    >
-                        &times;
-                    </button>
-                </li>
-            {/each}
-        </ul>
+        <div class="listbox-wrapper">
+            <ul id="listbox">
+                {#each listBoxItems as items, index }
+                    <li>
+                        <span>{items}</span>
+                        <button
+                            onclick={() => removeFromList(index)}
+                            aria-label="Remove item"
+                        >
+                            <X size={16} />
+                        </button>
+                    </li>
+                {/each}
+            </ul>
+        </div>
 
         <label for="variables">Pick variables to calculate</label>
         <select name="variables" id="variables" bind:value={selectedVariable}>
@@ -96,7 +77,7 @@
                 <option value={variable} onclick={addToList}>{variable.name}</option>
             {/each}
         </select>
-        
+
     </fieldset>
 </form>
 
@@ -125,18 +106,52 @@
     }
 
     ul#listbox {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.2em;
+        max-height: 250px;
+        overflow-y: auto;
         list-style: none;
         padding: 0;
-        margin: 0.5rem 0;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-    }
-    ul#listbox li {
-        padding: 0.3rem 0.6rem;
-        border-bottom: 1px solid #eee;
-    }
-    ul#listbox li:last-child {
-        border-bottom: none;
+        margin: 0.2rem;
     }
 
+    ul#listbox li {
+        display: flex;
+        align-items: center;
+        padding: 0.3rem 0.6rem;
+        border: 1px solid #eee;
+        border-radius: 25px;
+        font-size: medium;
+        width: fit-content;
+    }
+
+    button {
+        font-size: 1rem;
+        line-height: 1;
+        padding: 0;
+        margin-left: 0.5rem;
+        background: none;
+        border: none;
+        color: rgb(17, 17, 17);
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    button:hover {
+        transform: rotate(90deg);
+        color: red;
+    }
+
+    .listbox-wrapper {
+        height: 270px;
+        border: 1px solid #2a3140;
+        border-radius: 20px;
+        background-color: #1c212c;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+        margin-bottom: 1rem;
+    }
 </style>
