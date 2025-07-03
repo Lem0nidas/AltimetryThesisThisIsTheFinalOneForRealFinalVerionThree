@@ -4,6 +4,9 @@
     import { variables } from "$lib/data/variables";
     import { satellites } from "$lib/data/satellites";
     import { X } from "@lucide/svelte";
+    import Map from "$lib/components/Map.svelte";
+    
+    let { children } = $props()
 
     let selectedSatellite: RADSSatellite = $state({name: '', code: ''});
     let selectedVariable: RADSVariable | null = $state(null);
@@ -77,12 +80,14 @@
                 <option value={variable} onclick={addToList}>{variable.name}</option>
             {/each}
         </select>
+    </fieldset>
 
+    <fieldset>
+        
     </fieldset>
 </form>
 
-
-
+<Map />
 
 <style>
     form {
@@ -126,6 +131,12 @@
         width: fit-content;
     }
 
+    ul#listbox li:hover {
+        background-color: #ffffff0a;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
+        cursor: default;
+    }
+
     button {
         font-size: 1rem;
         line-height: 1;
@@ -155,3 +166,5 @@
         margin-bottom: 1rem;
     }
 </style>
+
+{@render children?.()}
