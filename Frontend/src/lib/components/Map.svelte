@@ -9,7 +9,7 @@
     let mapContainer: HTMLDivElement
     let map: L.Map
     let geojasonLayer: L.GeoJSON;
-    let selectedCountry = $state('');
+    let selectedOcean = $state('');
     let countryNames: string[] = $state([]);
     let parsedGeoJson = JSON.parse(simplified_oceans);
 
@@ -38,6 +38,7 @@
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
             noWrap: true,
             maxZoom: 5,
+            minZoom: 2,
         }).addTo(map);
 
         geojasonLayer = L.geoJSON(parsedGeoJson, {
@@ -63,7 +64,7 @@
 
 <div>
     <label for="">Select a country: </label>
-    <select bind:value={selectedCountry} onchange={() => highlightOcean(selectedCountry)}>
+    <select bind:value={selectedOcean} onchange={() => highlightOcean(selectedOcean)}>
         <option disabled selected value="">--- Choose --</option>
         {#each [...new Set(countryNames)] as name}
             <option value={name}>{name}</option>

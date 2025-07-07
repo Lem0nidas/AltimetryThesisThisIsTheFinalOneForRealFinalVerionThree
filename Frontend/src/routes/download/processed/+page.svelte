@@ -5,6 +5,7 @@
     import { satellites } from "$lib/data/satellites";
     import { X } from "@lucide/svelte";
     import Map from "$lib/components/Map.svelte";
+    import { processedDownload } from "$lib";
     
     let { children } = $props()
 
@@ -34,6 +35,17 @@
 
     async function handleSubmit(event: SubmitEvent) {
         event.preventDefault()
+
+        if (!selectedSatellite) {
+            messages.response = 'Please select a satellite'
+        }
+
+        try {
+            messages.response = await processedDownload(selectedSatellite.code);
+        } catch (err) {
+            messages.error = 'Error contacting server.',
+            console.log(err)
+        }
     }
 </script>
 
@@ -84,7 +96,7 @@
     </fieldset>
 
     <fieldset>
-        
+        <button type="submit">Submit</button>
     </fieldset>
 </form>
 

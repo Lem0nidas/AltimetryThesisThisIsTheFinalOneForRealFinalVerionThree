@@ -26,6 +26,7 @@ def download_raw_data(request: DownloadRequest):
 
     return {"message": f"Download for satellite {request.satellite} triggered"}
 
+
 @router.post("/api/download_custom")
 def download_custom_data(req: CustomRequest):
     if not req.satellite:
@@ -38,6 +39,7 @@ def download_custom_data(req: CustomRequest):
 
     return {"message": f"Received request for {req.satellite}/{req.cycle_num} data"}
 
+
 @router.post("/api/download_date")
 def download_by_date(req: DateRequest):
     if not req.satellite:
@@ -49,3 +51,17 @@ def download_by_date(req: DateRequest):
         raise HTTPException(status_code=500, detail=str(e))
     
     return {"message": f"Reicived request for {req.satellite} with start date {req.start_date}"}
+
+
+@router.post("/api/download_processed")
+def download_processed_data(req: DownloadRequest):
+    if not req.satellite:
+        raise HTTPException(status_code=400, detail="Missing satellite key")
+    
+    try:
+        pass
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    return {"message": f"Received processing request for {req.satellite}"}
+

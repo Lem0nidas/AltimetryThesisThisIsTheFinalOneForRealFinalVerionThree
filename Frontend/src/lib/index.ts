@@ -3,3 +3,4 @@
 export * from '$lib/api/date';
 export * from '$lib/api/download';
 export * from '$lib/api/temp';
+export * from '$lib/api/processed'

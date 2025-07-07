@@ -152,4 +152,4 @@ export const variables: RADSVariable[] = [
         `Bathymetry is the depth of the oceans (and seas). It is given as a negative number, 
         and thus constitutes the elevation of the sea bottom with respect to the geoid.`
     },
-]
+];
