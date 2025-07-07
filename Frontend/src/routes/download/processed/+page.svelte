@@ -63,6 +63,7 @@
                     <li>
                         <span>{items}</span>
                         <button
+                            id="removeButton"
                             onclick={() => removeFromList(index)}
                             aria-label="Remove item"
                         >
@@ -137,7 +138,7 @@
         cursor: default;
     }
 
-    button {
+    button#removeButton {
         font-size: 1rem;
         line-height: 1;
         padding: 0;
@@ -152,7 +153,7 @@
         justify-content: center;
     }
 
-    button:hover {
+    button#removeButton:hover {
         transform: rotate(90deg);
         color: red;
     }

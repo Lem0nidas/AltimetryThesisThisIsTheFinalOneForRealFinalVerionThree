@@ -3,14 +3,15 @@
     import L from 'leaflet';
     import 'leaflet/dist/leaflet.css';
     import { onMount } from 'svelte';
-    import countries from '$lib/data/countries.geojson?raw'
+    import simplified_oceans from '$lib/data/simplified_oceans.geojson?raw'
+
 
     let mapContainer: HTMLDivElement
     let map: L.Map
     let geojasonLayer: L.GeoJSON;
-    let selectedCountry = '';
-    let countryNames: string[] = [];
-    let parsedGeoJson = JSON.parse(countries);
+    let selectedCountry = $state('');
+    let countryNames: string[] = $state([]);
+    let parsedGeoJson = JSON.parse(simplified_oceans);
 
     function highlightOcean(name: string) {
         geojasonLayer.eachLayer((layer: any) => {
@@ -29,8 +30,15 @@
 
 
     onMount(() => {
-        map = L.map(mapContainer).setView([10, 0], 2);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        map = L.map(mapContainer, {
+            maxBounds: [[-85, -180], [85, 180]],
+            maxBoundsViscosity: 0.9,
+            zoomControl: false,
+        }).setView([10, 0], 2);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+            noWrap: true,
+            maxZoom: 5,
+        }).addTo(map);
 
         geojasonLayer = L.geoJSON(parsedGeoJson, {
             style: {
@@ -53,13 +61,6 @@
     })
 </script>
 
-<style>
-    #map {
-        height: 500px;
-        width: 100%;
-    }
-</style>
-
 <div>
     <label for="">Select a country: </label>
     <select bind:value={selectedCountry} onchange={() => highlightOcean(selectedCountry)}>
@@ -71,3 +72,20 @@
 </div>
 
 <div bind:this={mapContainer} id="map"></div>
+
+
+<style>
+    #map {
+        height: 500px;
+        width: 50%;
+        margin: 1rem auto 2rem;
+        border: 1px solid #2a3140;
+        border-radius: 20px;
+        position: relative;
+    }
+
+    div {
+        width: 45%;
+        margin: auto;
+    }
+</style>
