@@ -10,7 +10,7 @@
     let map: L.Map
     let geojasonLayer: L.GeoJSON;
     let selectedOcean = $state('');
-    let countryNames: string[] = $state([]);
+    let countryNames: string[] = $state(['Custom']);
     let parsedGeoJson = JSON.parse(simplified_oceans);
 
     function highlightOcean(name: string) {
@@ -65,7 +65,7 @@
 <div>
     <label for="">Select a country: </label>
     <select bind:value={selectedOcean} onchange={() => highlightOcean(selectedOcean)}>
-        <option disabled selected value="">--- Choose --</option>
+        <option disabled selected value="">-- Choose --</option>
         {#each [...new Set(countryNames)] as name}
             <option value={name}>{name}</option>
         {/each}

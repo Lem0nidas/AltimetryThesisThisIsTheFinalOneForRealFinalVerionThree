@@ -1,10 +1,10 @@
-export async function processedDownload(satellite: string): Promise<string> {
+export async function processedDownload(satellite: string, options: Record<string, string>): Promise<string> {
     const response = await fetch(`http://localhost:8000/api/download_processed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ satellite }),
-    });
-
+        body: JSON.stringify({ satellite, options }),
+    }); 
+// FIXME This wont work
     if (!response.ok) {
         throw new Error(`Failed to download data for ${satellite}: ${response.statusText}`);
     }

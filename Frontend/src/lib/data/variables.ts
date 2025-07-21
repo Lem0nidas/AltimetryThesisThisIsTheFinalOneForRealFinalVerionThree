@@ -55,12 +55,12 @@ export const variables: RADSVariable[] = [
     {
         name: 'Dry Tropospheric Correction', 
         varName: 'dry_tropo', 
-        description: ''
+        description: 'Delay of the radar signal in the atmoshpere, not counting the effect of water vapour.'
     },
     {
         name: 'Wet Tropospheric Correction', 
         varName: 'wet_tropo', 
-        description: ''
+        description: 'Delay of the signal in the atmosphere due to the presence of water vapours.'
     },
     {
         name: 'Ionospheric Correction', 
