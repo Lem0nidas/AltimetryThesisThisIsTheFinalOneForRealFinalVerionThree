@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing_extensions import Self
+from typing import Dict, Self
 from datetime import datetime, timezone
 
 
@@ -53,3 +53,5 @@ class DateRequest(DownloadRequest):
         
         return self
 
+class ProcessedRequest(DownloadRequest):
+    options: Dict[str, str] = Field(default_factory=dict, description="Extra optional arguments for the rads2asc command.")

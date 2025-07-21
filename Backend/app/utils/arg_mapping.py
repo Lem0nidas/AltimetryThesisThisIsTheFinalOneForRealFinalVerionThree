@@ -1,0 +1,20 @@
+# TODO Move this file to utils folder
+
+arg_map = {
+    'satellite': '-S',
+    'alias': '-A',
+    'cycle': '-C',
+    'format': '-F',
+    'limits': '-L',
+    'longitude': '--lon',
+    'latitude': '--lat',
+    'pass': '-P',
+    'quality': '-Q',
+    'region': '-R',
+    'sea': '--sla',
+    'time': '--time',
+    'vars': '-V',
+    'xml': '-X',
+    'output': '-O',
+    'stat': '-s a|c|p',
+}

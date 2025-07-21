@@ -3,9 +3,10 @@ from models.request_models import *
 from services.rads_sync_latest import get_latest_nc_file
 from services.rads_sync_custom import get_custom_nc_file
 from services.rads_sync_date import get_date_nc_file
+from services.rads2asc import get_asc
+
 
 router = APIRouter()
-
 
 @router.post("/api/download")
 async def download_data(request: CustomRequest):
@@ -54,14 +55,15 @@ def download_by_date(req: DateRequest):
 
 
 @router.post("/api/download_processed")
-def download_processed_data(req: DownloadRequest):
+def download_processed_data(req: ProcessedRequest):
     if not req.satellite:
         raise HTTPException(status_code=400, detail="Missing satellite key")
     
     try:
-        pass
+        get_asc(req.satellite, req.options) #TODO What am I doing?
+        print(f"Received request for: {req.satellite}. Requested variables are: {req.options}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-    return {"message": f"Received processing request for {req.satellite}"}
+    return {"message": f"Received processing request for {req.satellite}. Requested variables are: {req.options}"}
 
