@@ -6,14 +6,24 @@
 	import { satellites } from '$lib/data/satellites';
 	import { processedDownload } from '$lib';
 	import Map from '$lib/components/Map.svelte';
+	import Switch from '$lib/components/Switch.svelte';
 
 	let { children } = $props();
 
 	let selectedSatellite: RADSSatellite = $state({ name: '', code: '' });
 	let selectedVariable: RADSVariable | null = $state(null);
+	let selectedCycle: string = $state('');
 	let listBoxItems: RADSVariable[] = $state([]);
-	let options: Record<string, string> = $derived({
-		vars: listBoxItems.map((v) => v.varName).join(',')
+	let options: Record<string, string> = $derived.by(() => {
+		let opts: Record<string, string> = {
+			vars: listBoxItems.map((v) => v.varName).join(',')
+		};
+
+		if (selectedCycle !== '') {
+			opts.cycle = selectedCycle;
+		}
+
+		return opts;
 	});
 
 	let toggles = $state({
@@ -43,6 +53,8 @@
 
 		if (!selectedSatellite) {
 			messages.response = 'Please select a satellite';
+		} else if (listBoxItems.length == 0) {
+			messages.response = 'Please select a variable'; //TODO Don't execute code
 		}
 
 		try {
@@ -66,6 +78,8 @@
 		</select>
 	</fieldset>
 
+	<Switch bind:selectedProperty={selectedCycle} type="Cycle" />
+
 	<fieldset>
 		<label for="listbox">Selected Items:</label>
 		<div class="listbox-wrapper">
@@ -86,7 +100,7 @@
 		</div>
 
 		<label for="variables">Pick variables to calculate</label>
-		<select name="variables" id="variables" bind:value={selectedVariable}>
+		<select name="variables" id="variables" bind:value={selectedVariable} required>
 			<option value={null} disabled selected>Select any amount</option>
 			{#each variables as variable (variable.varName)}
 				<option value={variable} onclick={addToList}>{variable.name}</option>

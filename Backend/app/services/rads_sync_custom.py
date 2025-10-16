@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from utils.phase_mapping import locate_phase
+from pydantic import ValidationError
 
 load_dotenv()
 
@@ -40,6 +41,10 @@ def get_custom_nc_file(
             remote_file_path = f'{remote_base}/{satellite}/{phase_code}/{cycle_num}/{filename}'
         except StopIteration:
             raise RuntimeError(f"No file found for pass number {pass_num} in {satellite}/{cycle_num}.")
+        except ValidationError:
+            print('Must be integer')
+            raise ValidationError
+
     else:
         remote_file_path = f'{remote_base}/{satellite}/{phase_code}/{cycle_num}/'
         

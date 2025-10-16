@@ -14,7 +14,7 @@ find_dotenv()
 def get_date_nc_file(
         satellite: str, 
         start_date: str, 
-        end_date: str = "", 
+        end_date: str, 
         save_dir: Path = Path("./rads_data")
         ) -> None:
 
@@ -26,7 +26,7 @@ def get_date_nc_file(
     cyc_path = Path(str(os.getenv("RADS_CYCLES")))
     save_dir.mkdir(parents=True, exist_ok=True)
     user_start_date = parse_rads_datetime(start_date)
-    user_end_date = parse_rads_datetime(end_date) if (end_date[:4].isdigit()) else datetime.max.replace(tzinfo=timezone.utc)
+    user_end_date = parse_rads_datetime(end_date) if (end_date[:4].isdigit() and end_date != '0000') else datetime.max.replace(tzinfo=timezone.utc)
     sat_phases = [f.name for f in cyc_path.iterdir() if f.is_file() and f.name.startswith(satellite)]
     downloaded = False
 

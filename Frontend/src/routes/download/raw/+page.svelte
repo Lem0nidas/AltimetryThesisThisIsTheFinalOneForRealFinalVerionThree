@@ -4,11 +4,12 @@
 		requestDownload,
 		requestLatestDownload,
 		requestDateDownload
-	} from "$lib";
-	import type { RADSSatellite } from "$lib/data/satellites";
-	import { satellites } from "$lib/data/satellites";
+	} from '$lib';
+	import Switch from '$lib/components/Switch.svelte';
+	import type { RADSSatellite } from '$lib/data/satellites';
+	import { satellites } from '$lib/data/satellites';
 
-	let selectedSatellite: RADSSatellite = $state({name: '', code: ''});
+	let selectedSatellite: RADSSatellite = $state({ name: '', code: '' });
 	let selectedCycle = $state('');
 	let selectedPass = $state('');
 	let selectedStartDate = $state('');
@@ -17,15 +18,15 @@
 	let toggles = $state({
 		pass: false,
 		startDate: false,
-		endDate: false,
+		endDate: false
 	});
-	
+
 	let messages = $state({
 		response: '',
 		error: '',
 		download: '',
 		custom: '',
-		date: '',
+		date: ''
 	});
 
 	$effect(() => {
@@ -33,7 +34,7 @@
 			selectedPass = '';
 		}
 	});
-
+	//TODO Maybe split the submitions? Don't handle everything in one go.
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
@@ -43,17 +44,21 @@
 		}
 
 		try {
-			messages.response = await requestDownload(selectedSatellite.code, selectedCycle, selectedPass);
+			messages.response = await requestCustomDownload(
+				selectedSatellite.code,
+				selectedCycle,
+				selectedPass
+			);
 			// messages.download = await requestLatestDownload(selectedSatellite.code);
 			// messages.custom = await requestCustomDownload(selectedSatellite.code, selectedCycle, selectedPass);
-			
-			// if (toggles.startDate && selectedStartDate) {
-			// 	messages.date = await requestDateDownload(
-			// 		selectedSatellite.code,
-			// 		selectedStartDate,
-			// 		toggles.endDate ? selectedEndDate : ''
-			// 	);
-			// }
+
+			if (toggles.startDate && selectedStartDate) {
+				messages.date = await requestDateDownload(
+					selectedSatellite.code,
+					selectedStartDate,
+					toggles.endDate ? selectedEndDate : ''
+				);
+			}
 		} catch (err) {
 			messages.error = 'Error contacting server.';
 			console.error(err);
@@ -61,9 +66,7 @@
 	}
 </script>
 
-<h1>
-    Welcome to Download Raw Data page
-</h1>
+<h1>Welcome to Download Raw Data page</h1>
 
 <form onsubmit={handleSubmit}>
 	<fieldset>
@@ -81,20 +84,16 @@
 		<input type="text" id="cycle" bind:value={selectedCycle} placeholder="e.g. 015" />
 	</fieldset>
 
-	<fieldset>
-		<label for="pass-switch">
-			<input type="checkbox" name="pass-switch" role="switch" bind:checked={toggles.pass} />
-			Pick Specific Pass
-		</label>
-		{#if toggles.pass}
-			<label for="pass">Pass number:</label>
-			<input type="text" id="pass" bind:value={selectedPass} placeholder="e.g. 0234" />
-		{/if}
-	</fieldset>
+	<Switch bind:selectedProperty={selectedPass} type="Pass" />
 
 	<fieldset>
 		<label for="start-date-switch">
-			<input type="checkbox" name="start-date-switch" role="switch" bind:checked={toggles.startDate} />
+			<input
+				type="checkbox"
+				name="start-date-switch"
+				role="switch"
+				bind:checked={toggles.startDate}
+			/>
 			Date Based Download
 		</label>
 		{#if toggles.startDate}
@@ -102,7 +101,12 @@
 			<input type="date" name="start-date" bind:value={selectedStartDate} />
 
 			<label for="end-date-switch">
-				<input type="checkbox" name="end-date-switch" role="switch" bind:checked={toggles.endDate} />
+				<input
+					type="checkbox"
+					name="end-date-switch"
+					role="switch"
+					bind:checked={toggles.endDate}
+				/>
 				Include End Date
 			</label>
 
@@ -122,7 +126,6 @@
 		<p>{value}</p>
 	{/if}
 {/each}
-
 
 <style>
 	/* Wrapper to center everything */
@@ -153,8 +156,8 @@
 		font-weight: 500;
 	}
 
-	input[type="text"],
-	input[type="date"],
+	input[type='text'],
+	input[type='date'],
 	select {
 		width: 100%;
 		padding: 0.5rem;
@@ -164,7 +167,7 @@
 		color: white;
 	}
 
-	input[type="checkbox"] {
+	input[type='checkbox'] {
 		margin-right: 0.5rem;
 	}
 

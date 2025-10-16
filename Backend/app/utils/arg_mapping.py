@@ -1,5 +1,3 @@
-# TODO Move this file to utils folder
-
 arg_map = {
     'satellite': '-S',
     'alias': '-A',

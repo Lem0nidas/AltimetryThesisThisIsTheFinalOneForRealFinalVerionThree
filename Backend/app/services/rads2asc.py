@@ -1,8 +1,11 @@
 import os
+import re
 import subprocess
 from pathlib import Path
 from dotenv import load_dotenv
-from utils.arg_mapping import arg_map
+from utils.arg_mapping import arg_map #When runnig from main.py
+# from temp import arg_map #When executing only this file
+
 
 
 load_dotenv()
@@ -10,38 +13,32 @@ load_dotenv()
 # TODO DO it
 def get_asc(
         satellite: str,
-        # cycle: str, #FIXME I can get this from the options/kwargs argument! Figure out how to extract it
         options: dict[str, str],
-        cycle: str = "127",
         save_dir: Path = Path("./rads_data")
         ):
 
     if not satellite:
         raise ValueError("Satellite not specified")
 
-    # if options['cycle_num']:
-    #     file_path = save_dir / satellite / options['cycle_num']
-    # else: file_path = save_dir / satellite
-
-    file_path: Path = save_dir / satellite / cycle
+    if 'cycle' in options:
+        cycle = re.split(r'[,-| ]', options['cycle'])[0]
+        file_path = save_dir / satellite / cycle
+    else: file_path = save_dir / satellite
 
     if files_exist(file_path):
-        process_cmd = command_list(options)
+        process_cmd = command_list(satellite, options)
         subprocess.run(process_cmd, env=os.environ, check=True)
     else:
         print("First you must download the files localy.") #TODO Prompt the user to download the files if they are not found
 
     return
 
-def command_list(args, **kwargs) -> list[str]:
-    command = ['rads2asc', '-S', '3a']
-    for key, val in args.items():
-        if key in arg_map and val is not None:
+def command_list(satellite: str, options: dict[str, str]) -> list[str]:
+    command = ['rads2asc', '-S', satellite]
+    for key, val in options.items():
+        if key in arg_map and val is not (None or ''):
             command += [arg_map[key], str(val)]
-
-    print(args)
-    print(command)
-    
+    # print(command)
     return command
 
 def files_exist(path: Path) -> bool:
@@ -56,14 +53,27 @@ def files_exist(path: Path) -> bool:
 
 
 if __name__ == "__main__":
-    # command_list({
-    #     'sat': 'j2',
-    #     'cycle': '10,20',
-    #     'pass': '101,110',
-    #     'region': '-8,42,28,48',
-    #     'vars': 'time,lat,lon,sla,swh,wind_speed',
-    #     'output': 'output.asc',
-    # }, sat='j2', cycle='10,20', satellite='j3', format='')
+    command_list(
+        '3a',
+        {
+        'sat': 'j2',
+        'cycle': '10,20',
+        'pass': '',
+        'region': '-8,42,28,48',
+        'vars': 'time,lat,lon,sla,swh,wind_speed',
+        'output': 'output.asc',
+        },)
 
-    print(files_exist(Path("./Backend/rads_data/3a/127")))
+    get_asc(
+                '3a',
+        {
+        'sat': 'j2',
+        'cycle': '10,20',
+        'pass': '',
+        'region': '-8,42,28,48',
+        'vars': 'time,lat,lon,sla,swh,wind_speed',
+        'output': 'output.asc',
+        },
+    )
+    # print(files_exist(Path("./Backend/rads_data/3a/127")))
 

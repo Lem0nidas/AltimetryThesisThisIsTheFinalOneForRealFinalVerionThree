@@ -3,8 +3,8 @@ export async function processedDownload(satellite: string, options: Record<strin
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ satellite, options }),
-    }); 
-// FIXME This wont work
+    });
+    
     if (!response.ok) {
         throw new Error(`Failed to download data for ${satellite}: ${response.statusText}`);
     }
