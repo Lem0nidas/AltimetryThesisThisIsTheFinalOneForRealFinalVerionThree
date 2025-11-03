@@ -11,25 +11,31 @@ from utils.arg_mapping import arg_map #When runnig from main.py
 load_dotenv()
 
 # TODO DO it
-def get_asc(
+def get_asc( #TODO change this name
         satellite: str,
         options: dict[str, str],
-        save_dir: Path = Path("./rads_data")
+        save_dir: Path = Path("./rads_proccessed_data"),
+        check_path: Path = Path("./rads_data"),
         ):
 
     if not satellite:
-        raise ValueError("Satellite not specified")
+        raise ValueError("Satellite not specified!")
+    elif not options:
+        raise ValueError("Options not specified!")
+    elif not ('cycle' in options):
+        raise ValueError("Cycle not specified!")
+    
+    save_dir.mkdir(parents=True, exist_ok=True)
 
-    if 'cycle' in options:
-        cycle = re.split(r'[,-| ]', options['cycle'])[0]
-        file_path = save_dir / satellite / cycle
-    else: file_path = save_dir / satellite
+    cycle = options['cycle']
+    cycle = "".join(["c", cycle])
+    file_path = check_path
 
-    if files_exist(file_path):
+    if cycle_files_exist(file_path, satellite=satellite, cycle=cycle):
         process_cmd = command_list(satellite, options)
         subprocess.run(process_cmd, env=os.environ, check=True)
     else:
-        print("First you must download the files localy.") #TODO Prompt the user to download the files if they are not found
+        print("First you must download the files localy.")
 
     return
 
@@ -38,16 +44,18 @@ def command_list(satellite: str, options: dict[str, str]) -> list[str]:
     for key, val in options.items():
         if key in arg_map and val is not (None or ''):
             command += [arg_map[key], str(val)]
-    # print(command)
+
+    # command += ['--output', '/home/leon/Desktop/Altimetry Project/Backend/rads_proccessed_data/aa']
+    # final = command + ['-O /rads_proccessed_data'] #TODO save to different location
     return command
 
-def files_exist(path: Path) -> bool:
-    satellite: str = path.parts[-2]
-    cycle: str = path.parts[-1]
 
+def cycle_files_exist(path: Path, satellite: str, cycle: str) -> bool:
     for root, dirs, files in os.walk(path):
-        for file in files:
-            if (f'{satellite}' and f'c{cycle}') in file:
+        if satellite in dirs:
+            satellite_dir = os.path.join(root, satellite)
+            
+            if cycle in os.listdir(satellite_dir):
                 return True
     return False
 

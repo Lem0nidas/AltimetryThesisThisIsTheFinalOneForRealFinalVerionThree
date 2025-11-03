@@ -11,7 +11,7 @@ def locate_phase(satellite: str, cyc_num: str) -> str:
     sat_phases = [f.name for f in cyc_path.iterdir() if f.is_file() and f.name.startswith(satellite)]
     for file in sat_phases:
         phase_code, first_cycle, last_cycle = read_first_last_cycle(f"{cyc_path}/{file}")
-        if (int(first_cycle) < int(cyc_num)) and (int(last_cycle) > int(cyc_num)):
+        if (int(first_cycle) <= int(cyc_num)) and (int(last_cycle) >= int(cyc_num)):
             return phase_code
         else:
             continue

@@ -57,10 +57,12 @@ def download_by_date(req: DateRequest):
 @router.post("/api/download_processed")
 def download_processed_data(req: ProcessedRequest):
     if not req.satellite:
-        raise HTTPException(status_code=400, detail="Missing satellite key")
-    
+        raise HTTPException(status_code=400, detail="Missing satellite key!")
+    elif not req.options:
+        raise HTTPException(status_code=400, detail="Missing options from request!")
+
     try:
-        get_asc(req.satellite, req.options) #TODO What am I doing?
+        get_asc(req.satellite, req.options)
         print(f"Received request for: {req.satellite}. Requested variables are: {req.options}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
