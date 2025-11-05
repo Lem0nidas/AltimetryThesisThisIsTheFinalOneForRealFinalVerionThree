@@ -19,18 +19,14 @@ def get_asc(
 
     if not satellite:
         raise ValueError("Satellite not specified")
+    
+    cycle = 'c' + options['cycle']
 
-    if 'cycle' in options:
-        cycle = re.split(r'[,-| ]', options['cycle'])[0]
-        file_path = save_dir / satellite / cycle
-    else: file_path = save_dir / satellite
-
-    if files_exist(file_path):
+    if files_exist(save_dir, satellite, cycle):
         process_cmd = command_list(satellite, options)
         subprocess.run(process_cmd, env=os.environ, check=True)
     else:
         print("First you must download the files localy.") #TODO Prompt the user to download the files if they are not found
-
     return
 
 def command_list(satellite: str, options: dict[str, str]) -> list[str]:
@@ -38,17 +34,16 @@ def command_list(satellite: str, options: dict[str, str]) -> list[str]:
     for key, val in options.items():
         if key in arg_map and val is not (None or ''):
             command += [arg_map[key], str(val)]
-    # print(command)
+    
+    command += ['-o test.asc'] #TODO Change file_name
     return command
 
-def files_exist(path: Path) -> bool:
-    satellite: str = path.parts[-2]
-    cycle: str = path.parts[-1]
+def files_exist(path: Path, satellite: str, cycle: str) -> bool:
+    pattern = rf'{satellite}\/.{{1}}\/{cycle}'
 
     for root, dirs, files in os.walk(path):
-        for file in files:
-            if (f'{satellite}' and f'c{cycle}') in file:
-                return True
+        if re.search(pattern, root):
+            return True
     return False
 
 
