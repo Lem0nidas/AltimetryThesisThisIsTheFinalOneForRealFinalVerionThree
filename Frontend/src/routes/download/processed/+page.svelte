@@ -13,6 +13,7 @@
 	let selectedSatellite: RADSSatellite = $state({ name: '', code: '' });
 	let selectedVariable: RADSVariable | null = $state(null);
 	let selectedCycle: string = $state('');
+	let selectedArea: string = $state('');
 	let listBoxItems: RADSVariable[] = $state([]);
 	let options: Record<string, string> = $derived.by(() => {
 		let opts: Record<string, string> = {
@@ -21,6 +22,10 @@
 
 		if (selectedCycle !== '') {
 			opts.cycle = selectedCycle;
+		}
+
+		if (selectedArea != '') {
+			opts.area = selectedArea;
 		}
 
 		return opts;
@@ -51,10 +56,12 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
+		alert('Selected cycle: ' + selectedCycle + ' Selected Area: ' + selectedArea);
+
 		if (!selectedSatellite) {
 			messages.response = 'Please select a satellite';
 		} else if (listBoxItems.length == 0) {
-			messages.response = 'Please select a variable'; //TODO Don't execute code
+			messages.response = 'Please select a variable';
 		}
 
 		try {
@@ -118,7 +125,7 @@
 	</fieldset>
 </form>
 
-<Map />
+<Map bind:selectedOcean={selectedArea} />
 
 {@render children?.()}
 

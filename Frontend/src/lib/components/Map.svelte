@@ -7,8 +7,8 @@
 	let mapContainer: HTMLDivElement;
 	let map: L.Map;
 	let geojasonLayer: L.GeoJSON;
-	let selectedOcean = $state('');
-	let oceanNames: string[] = $state([]);
+	let { selectedOcean = $bindable() } = $props();
+	let areaNames: string[] = $state(['Custom']);
 	let parsedGeoJson = JSON.parse(simplified_oceans);
 
 	function highlightOcean(name: string) {
@@ -49,11 +49,11 @@
 			},
 			onEachFeature: (feature, layer) => {
 				const name = feature.properties?.name || 'Unknown';
-				oceanNames.push(name);
+				areaNames.push(name);
 
-				layer.on('click', (e) => {
-					const { lat, lng } = e.latlng;
-					alert(`Clicked: ${name}\nLat: ${lat.toFixed(2)}, Lon: ${lng.toFixed(2)}`);
+				layer.on('click', () => {
+					selectedOcean = name;
+					highlightOcean(name);
 				});
 			}
 		});
@@ -63,10 +63,10 @@
 </script>
 
 <div>
-	<label for="">Select an ocean: </label>
+	<label for="">Select an area: </label>
 	<select bind:value={selectedOcean} onchange={() => highlightOcean(selectedOcean)}>
 		<option disabled selected value="">-- Choose --</option>
-		{#each [...new Set(oceanNames)] as name}
+		{#each [...new Set(areaNames)] as name}
 			<option value={name}>{name}</option>
 		{/each}
 	</select>
