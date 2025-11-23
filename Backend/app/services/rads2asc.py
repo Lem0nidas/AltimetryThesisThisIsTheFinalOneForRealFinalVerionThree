@@ -4,6 +4,7 @@ import subprocess
 from pathlib import Path
 from dotenv import load_dotenv
 from utils.arg_mapping import arg_map #When runnig from main.py
+from utils.reg_mapping import reg_map
 # from temp import arg_map #When executing only this file
 
 
@@ -31,11 +32,13 @@ def get_asc(
 
 def command_list(satellite: str, options: dict[str, str]) -> list[str]:
     command = ['rads2asc', '-S', satellite]
+    options['region'] = reg_map.get(options['area'], "UNKNOWN")
+
     for key, val in options.items():
         if key in arg_map and val is not (None or ''):
             command += [arg_map[key], str(val)]
     
-    command += ['-o test.asc'] #TODO Change file_name
+    command += ['-o AreaTest.asc'] #TODO Change file_name
     return command
 
 def files_exist(path: Path, satellite: str, cycle: str) -> bool:
