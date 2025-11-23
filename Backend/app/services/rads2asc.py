@@ -32,7 +32,7 @@ def get_asc(
 
 def command_list(satellite: str, options: dict[str, str]) -> list[str]:
     command = ['rads2asc', '-S', satellite]
-    options['region'] = reg_map.get(options['area'], "UNKNOWN")
+    options['region'] = reg_map.get(options['area'], '')
 
     for key, val in options.items():
         if key in arg_map and val is not (None or ''):
