@@ -12,11 +12,10 @@ from utils.reg_mapping import reg_map
 load_dotenv()
 
 # TODO DO it
-def get_asc( #TODO change this name
+def get_asc(
         satellite: str,
         options: dict[str, str],
-        save_dir: Path = Path("./rads_proccessed_data"),
-        check_path: Path = Path("./rads_data"),
+        save_dir: Path = Path("./rads_data")
         ):
 
     if not satellite:
@@ -45,7 +44,6 @@ def command_list(satellite: str, options: dict[str, str]) -> list[str]:
 def files_exist(path: Path, satellite: str, cycle: str) -> bool:
     pattern = rf'{satellite}\/.{{1}}\/{cycle}'
 
-def cycle_files_exist(path: Path, satellite: str, cycle: str) -> bool:
     for root, dirs, files in os.walk(path):
         if re.search(pattern, root):
             return True
@@ -75,5 +73,4 @@ if __name__ == "__main__":
         'output': 'output.asc',
         },
     )
-    # print(files_exist(Path("./Backend/rads_data/3a/127")))
 

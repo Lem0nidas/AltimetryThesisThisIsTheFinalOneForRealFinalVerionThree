@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi.responses import JSONResponse
 from models.request_models import *
 from services.rads_sync_latest import get_latest_nc_file
 from services.rads_sync_custom import get_custom_nc_file
 from services.rads_sync_date import get_date_nc_file
 from services.rads2asc import get_asc
+from Backend.app.services.view import viewNetcdf
 
 
 router = APIRouter()
@@ -69,3 +71,11 @@ def download_processed_data(req: ProcessedRequest):
     
     return {"message": f"Received processing request for {req.satellite}. Requested variables are: {req.options}"}
 
+
+@router.post("/api/viewer")
+async def view(file: UploadFile = File(...)):
+    try:
+        await viewNetcdf(file)
+        print("Request send.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
