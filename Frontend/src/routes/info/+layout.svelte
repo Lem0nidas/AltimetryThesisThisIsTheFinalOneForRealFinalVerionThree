@@ -4,12 +4,11 @@
 	let { children } = $props();
 </script>
 
-<Nav />
+<div class="layout-wrapper">
+	<Nav />
+</div>
 
 {@render children()}
 
 <style>
-	:global(body, h1, h2, h3, p) {
-		font-family: 'Cormorant Garamond', serif;
-	}
 </style>
