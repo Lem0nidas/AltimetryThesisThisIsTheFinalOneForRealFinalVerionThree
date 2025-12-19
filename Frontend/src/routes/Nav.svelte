@@ -1,4 +1,3 @@
-
 <script lang="ts">
 	import Menu from '/home/leon/node_modules/@lucide/svelte/dist/icons/menu';
 	import Home from '/home/leon/node_modules/@lucide/svelte/dist/icons/home';
@@ -14,13 +13,12 @@
 	let menuOpen = $state(false);
 
 	function toggleMenu() {
-		menuOpen = !menuOpen
+		menuOpen = !menuOpen;
 	}
 </script>
 
-
 <nav>
-	<button class="menu-btn" onclick={() => menuOpen = !menuOpen}><Menu /></button>
+	<button class="menu-btn" onclick={() => (menuOpen = !menuOpen)}><Menu /></button>
 
 	<div class="title">Altimetry Portal</div>
 
@@ -37,20 +35,30 @@
 	{/if}
 </nav>
 
-
 <style>
 	@keyframes fadeIn {
-		from { opacity: 0; }
-		to { opacity: 1; }
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
 	}
 
 	@keyframes fadeOut {
-		from { opacity: 1; }
-		to { opacity: 0; }
+		from {
+			opacity: 1;
+		}
+		to {
+			opacity: 0;
+		}
 	}
 
 	nav {
 		display: flex;
+		position: sticky;
+		top: 0;
+		z-index: 1;
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.75rem 1.5rem;
@@ -58,7 +66,6 @@
 		color: white;
 		border-radius: 0 0 12px 12px;
 		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-		position: relative;
 		transition: background-color 0.3s ease;
 	}
 
@@ -82,7 +89,7 @@
 	}
 
 	.menu-btn:hover {
-		color: #ccc
+		color: #ccc;
 	}
 
 	.dropdown {
@@ -109,7 +116,9 @@
 		color: white;
 		text-decoration: none;
 		border-radius: 8px;
-		transition: background-color 0.2s ease, box-shadow 0.2s ease;
+		transition:
+			background-color 0.2s ease,
+			box-shadow 0.2s ease;
 	}
 
 	.dropdown a:hover {
