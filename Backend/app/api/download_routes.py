@@ -5,7 +5,8 @@ from services.rads_sync_latest import get_latest_nc_file
 from services.rads_sync_custom import get_custom_nc_file
 from services.rads_sync_date import get_date_nc_file
 from services.rads2asc import get_asc
-from Backend.app.services.view import viewNetcdf
+from services.rads2nc import get_nc
+from services.view import storeNetcdf
 
 
 router = APIRouter()
@@ -63,19 +64,26 @@ def download_processed_data(req: ProcessedRequest):
     elif not req.options:
         raise HTTPException(status_code=400, detail="Missing options from request!")
 
-    try:
-        get_asc(req.satellite, req.options)
-        print(f"Received request for: {req.satellite}. Requested variables are: {req.options}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-    return {"message": f"Received processing request for {req.satellite}. Requested variables are: {req.options}"}
+    if (req.file == False):
+        try:
+            get_asc(req.satellite, req.options)
+            print(f"Received ascii request for: {req.satellite}. \nRequested variables are: {req.options}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    else: 
+        try:
+            get_nc()
+            print(f"Received nc request for: {req.satellite}. \nRequested variables are: {req.options}")
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    return {"message": f"Received processing request for {req.satellite}. \nRequested variables are: {req.options}"}
 
 
 @router.post("/api/viewer")
 async def view(file: UploadFile = File(...)):
     try:
-        await viewNetcdf(file)
-        print("Request send.")
+        data = await storeNetcdf(file)
+        print(data)
+        return JSONResponse(content=data)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

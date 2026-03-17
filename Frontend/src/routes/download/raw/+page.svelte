@@ -1,24 +1,20 @@
 <script lang="ts">
-	import {
-		requestCustomDownload,
-		requestDownload,
-		requestLatestDownload,
-		requestDateDownload
-	} from '$lib';
+	import { requestCustomDownload, requestDateDownload } from '$lib';
 	import Switch from '$lib/components/Switch.svelte';
 	import type { RADSSatellite } from '$lib/data/satellites';
 	import { satellites } from '$lib/data/satellites';
 
-	let selectedSatellite: RADSSatellite = $state({ name: '', code: '' });
+	let selectedSatellite: RADSSatellite = $state({ name: '', code: '', start: '', end: '' });
 	let selectedCycle = $state('');
 	let selectedPass = $state('');
+	let currentDate = new Date().toISOString().split('T')[0];
 	let selectedStartDate = $state('');
 	let selectedEndDate = $state('');
 
 	let toggles = $state({
 		pass: false,
-		startDate: false,
-		endDate: false
+		dateSwitch: true,
+		startDate: false
 	});
 
 	let messages = $state({
@@ -30,11 +26,21 @@
 	});
 
 	$effect(() => {
+		if (selectedSatellite.name != '') {
+			toggles.dateSwitch = false;
+			selectedEndDate = (selectedSatellite.end !== 'present') ? selectedSatellite.end : currentDate;;
+		}
+
 		if (!toggles.pass) {
 			selectedPass = '';
 		}
+
+		if (toggles.startDate) {
+			selectedCycle = '';
+			selectedPass = '';
+		}
 	});
-	//TODO Maybe split the submitions? Don't handle everything in one go.
+
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
@@ -44,19 +50,19 @@
 		}
 
 		try {
-			messages.response = await requestCustomDownload(
-				selectedSatellite.code,
-				selectedCycle,
-				selectedPass
-			);
-			// messages.download = await requestLatestDownload(selectedSatellite.code);
-			// messages.custom = await requestCustomDownload(selectedSatellite.code, selectedCycle, selectedPass);
+			if (!toggles.startDate && selectedCycle) {
+				messages.response = await requestCustomDownload(
+					selectedSatellite.code,
+					selectedCycle,
+					selectedPass
+				);
+			}
 
 			if (toggles.startDate && selectedStartDate) {
 				messages.date = await requestDateDownload(
 					selectedSatellite.code,
 					selectedStartDate,
-					toggles.endDate ? selectedEndDate : ''
+					selectedEndDate
 				);
 			}
 		} catch (err) {
@@ -66,7 +72,7 @@
 	}
 </script>
 
-<h1>Welcome to Download Raw Data page</h1>
+<h1>Download Raw Data page</h1>
 
 <form onsubmit={handleSubmit}>
 	<fieldset>
@@ -79,14 +85,25 @@
 		</select>
 	</fieldset>
 
-	<fieldset>
+	<fieldset disabled={toggles.startDate}>
 		<label for="cycle">Type the cycle number:</label>
-		<input type="text" id="cycle" bind:value={selectedCycle} placeholder="e.g. 015" />
+		<input
+			type="text"
+			id="cycle"
+			placeholder="e.g. 015"
+			maxlength="3"
+			bind:value={selectedCycle}
+			onblur={() => {
+				if (selectedCycle?.trim()) {
+					selectedCycle = selectedCycle.padStart(3, '0');
+				}
+			}}
+		/>
 	</fieldset>
 
-	<Switch bind:selectedProperty={selectedPass} type="Pass" />
+	<Switch bind:selectedProperty={selectedPass} type="Pass" disable={toggles.startDate} />
 
-	<fieldset>
+	<fieldset disabled={toggles.dateSwitch}>
 		<label for="start-date-switch">
 			<input
 				type="checkbox"
@@ -97,23 +114,23 @@
 			Date Based Download
 		</label>
 		{#if toggles.startDate}
-			<label for="start-date">Pick Start Date:</label>
-			<input type="date" name="start-date" bind:value={selectedStartDate} />
-
-			<label for="end-date-switch">
-				<input
-					type="checkbox"
-					name="end-date-switch"
-					role="switch"
-					bind:checked={toggles.endDate}
+			<label for="start-date">Pick Date:</label>
+			<div class="date-container">
+				<input 
+					type="date" 
+					name="start-date" 
+					min={selectedSatellite.start} 
+					max={selectedSatellite.end} 
+					bind:value={selectedStartDate} 
 				/>
-				Include End Date
-			</label>
-
-			{#if toggles.endDate}
-				<label for="end-date">Pick End Date:</label>
-				<input type="date" name="end-date" bind:value={selectedEndDate} />
-			{/if}
+				<input 
+					type="date" 
+					name="end-date" 
+					min={selectedSatellite.start} 
+					max={selectedSatellite.end} 
+					bind:value={selectedEndDate} 
+				/>
+			</div>
 		{/if}
 	</fieldset>
 
@@ -157,7 +174,6 @@
 	}
 
 	input[type='text'],
-	input[type='date'],
 	select {
 		width: 100%;
 		padding: 0.5rem;
@@ -165,6 +181,16 @@
 		border: 1px solid #444;
 		background-color: #1f1f1f;
 		color: white;
+	}
+
+	.date-container {
+		display: flex;
+		gap: 10%;
+		justify-content: center;
+	}
+
+	input[type='date'] {
+		width: 40%;
 	}
 
 	input[type='checkbox'] {

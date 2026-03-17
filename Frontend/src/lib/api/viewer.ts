@@ -1,4 +1,6 @@
-export async function requestNetcdf(ncFile: File): Promise<String> {
+import { ncDataStore } from "$lib/stores";
+
+export async function requestNetcdf(ncFile: File): Promise<any> {
     const formData = new FormData();
     formData.append('file', ncFile);
 
@@ -12,5 +14,7 @@ export async function requestNetcdf(ncFile: File): Promise<String> {
     }
 
     const data = await response.json();
-    return 'Data request sent!';
+    ncDataStore.set(data);
+    console.log("Fetched data:", data)
+    return data;
 }

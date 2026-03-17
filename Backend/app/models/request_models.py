@@ -39,6 +39,7 @@ class CustomRequest(DownloadRequest):
         
         return value.zfill(4)
 
+#TODO Update variable to date type instead of string (in the future)
 class DateRequest(DownloadRequest):
     start_date: str = Field(description="Data start date based on which pass is located")
     end_date: str = Field(description="Data end date based on which pass is located")
@@ -54,4 +55,5 @@ class DateRequest(DownloadRequest):
         return self
 
 class ProcessedRequest(DownloadRequest):
-    options: Dict[str, str] = Field(default_factory=dict, description="Extra optional arguments for the rads2asc command.")
+    options: Dict[str, str] = Field(..., description="Comma-separated list of variable names")
+    file: bool = Field(..., description="False = ASCII, True = NetCDF")

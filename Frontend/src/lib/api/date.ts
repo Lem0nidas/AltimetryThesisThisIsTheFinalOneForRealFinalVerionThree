@@ -1,4 +1,4 @@
-export async function requestDateDownload(satellite: string, startDate: string = "", endDate: string = ""): Promise<string> {
+export async function requestDateDownload(satellite: string, startDate: string, endDate: string): Promise<string> {
     
     if (!startDate || startDate == "Start Date not selected") {
         console.warn('No date provided, skipping date download request.');

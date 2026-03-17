@@ -11,7 +11,7 @@
 	let { children } = $props();
 
 	let selectedSatellite: RADSSatellite = $state({ name: '', code: '' });
-	let selectedVariable: RADSVariable | null = $state(null);
+	let selectedVariable: RADSVariable = $state({ name: '', varName: '', description: '' });
 	let selectedCycle: string = $state('');
 	let selectedArea: string = $state('');
 	let listBoxItems: RADSVariable[] = $state([]);
@@ -20,20 +20,20 @@
 			vars: listBoxItems.map((v) => v.varName).join(',')
 		};
 
-		if (selectedCycle !== '') {
+		if (selectedCycle != '') {
 			opts.cycle = selectedCycle;
 		}
 
-		if (selectedArea != '') {
-			opts.area = selectedArea;
-		}
+		// if (selectedArea != '') {
+		// 	opts.region = selectedArea;
+		// }
+
+		opts.region = selectedArea;
 
 		return opts;
 	});
 
-	let toggles = $state({
-		file_type: false
-	});
+	let fileType = $state(false);
 
 	let messages = $state({
 		response: '',
@@ -44,7 +44,7 @@
 	});
 
 	function addToList() {
-		if (selectedVariable && !listBoxItems.some((item) => item.name === selectedVariable?.name)) {
+		if (!listBoxItems.some((item) => item.name === selectedVariable.name)) {
 			listBoxItems = [...listBoxItems, selectedVariable];
 		}
 	}
@@ -56,23 +56,29 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
-		alert('Selected cycle: ' + selectedCycle + ' Selected Area: ' + selectedArea);
+		// alert('Selected cycle: ' + selectedCycle + ' Selected Area: ' + selectedArea);
 
-		if (!selectedSatellite) {
-			messages.response = 'Please select a satellite';
-		} else if (listBoxItems.length == 0) {
-			messages.response = 'Please select a variable';
+		if (!selectedSatellite || listBoxItems.length === 0) {
+			messages.response = 'Please select a satellite and a variable';
+			return;
 		}
 
+		// let options: Record<string, string> = {
+		// 	vars: listBoxItems.map((v) => v.varName).join(','),
+		// 	cycle: selectedCycle,
+		// 	area: selectedArea
+		// };
+
 		try {
-			messages.response = await processedDownload(selectedSatellite.code, options);
+			messages.response = await processedDownload(selectedSatellite.code, options, fileType);
 		} catch (err) {
-			(messages.error = 'Error contacting server.'), console.log(err);
+			messages.error = 'Error contacting server.';
+			console.log(err);
 		}
 	}
 </script>
 
-<h1>Welcome to Download Processed Data page</h1>
+<h1>Download Processed Data page</h1>
 
 <form onsubmit={handleSubmit}>
 	<fieldset>
@@ -88,13 +94,14 @@
 	<Switch bind:selectedProperty={selectedCycle} type="Cycle" />
 
 	<fieldset>
-		<label for="listbox">Selected Items:</label>
+		<label for="listbox">Selected Variables:</label>
 		<div class="listbox-wrapper">
 			<ul id="listbox">
 				{#each listBoxItems as items, index}
 					<li>
 						<span>{items.name}</span>
 						<button
+							type="button"
 							id="removeButton"
 							onclick={() => removeFromList(index)}
 							aria-label="Remove item"
@@ -106,11 +113,17 @@
 			</ul>
 		</div>
 
-		<label for="variables">Pick variables to calculate</label>
-		<select name="variables" id="variables" bind:value={selectedVariable} required>
+		<label for="variables">Pick variables</label>
+		<select
+			name="variables"
+			id="variables"
+			bind:value={selectedVariable}
+			onchange={addToList}
+			required
+		>
 			<option value={null} disabled selected>Select any amount</option>
 			{#each variables as variable (variable.varName)}
-				<option value={variable} onclick={addToList}>{variable.name}</option>
+				<option value={variable}>{variable.name}</option>
 			{/each}
 		</select>
 	</fieldset>
@@ -118,9 +131,9 @@
 	<fieldset id="button">
 		<button type="submit">Submit</button>
 		<label for="file-type-switch">
-			NetCDF File
-			<input id="file-type-switch" type="checkbox" role="switch" bind:checked={toggles.file_type} />
 			ASCII File
+			<input id="file-type-switch" type="checkbox" role="switch" bind:checked={fileType} />
+			NetCDF File
 		</label>
 	</fieldset>
 </form>
@@ -190,7 +203,7 @@
 		font-size: 1rem;
 		line-height: 1;
 		padding: 0;
-		margin-left: 0.5rem;
+		margin: auto 0.2rem;
 		background: none;
 		border: none;
 		color: rgb(17, 17, 17);
