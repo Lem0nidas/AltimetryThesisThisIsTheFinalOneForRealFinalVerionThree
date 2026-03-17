@@ -3,9 +3,10 @@ import re
 import subprocess
 from pathlib import Path
 from dotenv import load_dotenv
-from utils.arg_mapping import arg_map #When runnig from main.py
+from utils.arg_mapping import arg_map
 from utils.reg_mapping import reg_map
-# from temp import arg_map #When executing only this file
+# from temp import arg_map
+
 
 
 
@@ -15,15 +16,14 @@ load_dotenv()
 def get_asc(
         satellite: str,
         options: dict[str, str],
-        save_dir: Path = Path("./rads_data")
         ):
 
     if not satellite:
         raise ValueError("Satellite not specified")
     
     cycle = 'c' + options['cycle']
-
-    if files_exist(save_dir, satellite, cycle):
+    phase = 'a'
+    if files_exist(satellite, phase, cycle):
         process_cmd = command_list(satellite, options)
         subprocess.run(process_cmd, env=os.environ, check=True)
     else:
@@ -32,45 +32,43 @@ def get_asc(
 
 def command_list(satellite: str, options: dict[str, str]) -> list[str]:
     command = ['rads2asc', '-S', satellite]
-    options['region'] = reg_map.get(options['area'], '')
+    if not options.get('region'):
+        del options['region']
 
+    print(options)
     for key, val in options.items():
-        if key in arg_map and val is not (None or ''):
+        if key in arg_map and (val is not None and val != ''):
             command += [arg_map[key], str(val)]
     
-    command += ['-o AreaTest.asc'] #TODO Change file_name
+    command += ['-o', "".join([satellite, options['cycle']])]
     return command
 
-def files_exist(path: Path, satellite: str, cycle: str) -> bool:
-    pattern = rf'{satellite}\/.{{1}}\/{cycle}'
-
-    for root, dirs, files in os.walk(path):
-        if re.search(pattern, root):
-            return True
-    return False
-
+def files_exist(satellite: str, phase: str, cycle: str) -> bool:
+    home = Path(os.getenv("RADSDATAROOT", "/"))
+    expected_path = home / satellite / phase / cycle
+    return expected_path.exists()
 
 if __name__ == "__main__":
-    command_list(
-        '3a',
-        {
-        'sat': 'j2',
-        'cycle': '10,20',
-        'pass': '',
-        'region': '-8,42,28,48',
-        'vars': 'time,lat,lon,sla,swh,wind_speed',
-        'output': 'output.asc',
-        },)
+    # command_list(
+    #     '3a',
+    #     {
+    #     'sat': 'j2',
+    #     'cycle': '10,20',
+    #     'pass': '',
+    #     'region': '-8,42,28,48',
+    #     'vars': 'time,lat,lon,sla,swh,wind_speed',
+    #     'output': 'output.asc',
+    #     },)
 
-    get_asc(
-                '3a',
-        {
-        'sat': 'j2',
-        'cycle': '10,20',
-        'pass': '',
-        'region': '-8,42,28,48',
-        'vars': 'time,lat,lon,sla,swh,wind_speed',
-        'output': 'output.asc',
-        },
-    )
-
+    # get_asc(
+    #             '3a',
+    #     {
+    #     'sat': 'j2',
+    #     'cycle': '10,20',
+    #     'pass': '',
+    #     'region': '-8,42,28,48',
+    #     'vars': 'time,lat,lon,sla,swh,wind_speed',
+    #     'output': 'output.asc',
+    #     },
+    # )
+    print(files_exist("3a", "a", "c001"))

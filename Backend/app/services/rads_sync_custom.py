@@ -11,9 +11,7 @@ load_dotenv()
 def get_custom_nc_file(
         satellite: str, 
         cycle_num: str, 
-        pass_num: str = "", 
-        phase_code = "", 
-        save_dir: Path = Path("./rads_data")
+        pass_num: str = "",
         ) -> None:
     
     if not satellite:
@@ -22,11 +20,9 @@ def get_custom_nc_file(
         raise ValueError("Cycle not specified")
     
     remote_base = os.getenv("RADS_REMOTE_BASE")
-    save_dir.mkdir(parents=True, exist_ok=True)
-    cycle_num = "".join(["c", cycle_num])
-    pass_num = "".join(["p", pass_num])
-    if phase_code == "":
-        phase_code = locate_phase(satellite, cycle_num[1:])
+    rads_dir = Path(os.getenv("RADSDATAROOT", "/"))
+    cycle_num = "".join(["c", cycle_num.zfill(3)])
+    phase_code = locate_phase(satellite, cycle_num[1:])
 
     file_cmd = ['rsync', f'{remote_base}/{satellite}/{phase_code}/{cycle_num}/']
     try:
@@ -34,7 +30,8 @@ def get_custom_nc_file(
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Failed to list files in {satellite}/{cycle_num}.") from e
     
-    if pass_num != "p":
+    if pass_num != "":
+        pass_num = "".join(["p", pass_num.zfill(4)])
         try:
             custom_file_name = next((line for line in files_in_cycle.splitlines() if pass_num in line and line.endswith(".nc")), None)
             filename = custom_file_name.split()[-1] if custom_file_name else None
@@ -48,7 +45,7 @@ def get_custom_nc_file(
     else:
         remote_file_path = f'{remote_base}/{satellite}/{phase_code}/{cycle_num}/'
         
-    local_target = save_dir / satellite / cycle_num
+    local_target = rads_dir / satellite / phase_code / cycle_num
     local_target.mkdir(parents=True, exist_ok=True)
 
     

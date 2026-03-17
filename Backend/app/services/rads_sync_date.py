@@ -4,18 +4,16 @@ from pathlib import Path
 from dotenv import find_dotenv
 from datetime import datetime, timedelta, timezone
 from services.rads_sync_custom import get_custom_nc_file
-from utils.phase_mapping import parse_rads_datetime, read_first_last_pass
+from utils.phase_mapping import *
 
 
 find_dotenv()
 
 # TODO Make improvments
-# FIXME Somethings are not working properly. Clean up and debug.
 def get_date_nc_file(
         satellite: str, 
         start_date: str, 
         end_date: str, 
-        save_dir: Path = Path("./rads_data")
         ) -> None:
 
     if not satellite:
@@ -23,56 +21,67 @@ def get_date_nc_file(
     if not start_date:
         raise ValueError("Date not specified")
 
-    cyc_path = Path(str(os.getenv("RADS_CYCLES")))
-    save_dir.mkdir(parents=True, exist_ok=True)
+    cyc_path = Path(os.getenv("RADS_CYCLES", "/"))
+    rads_dir = Path(os.getenv("RADSDATAROOT", "/"))
     user_start_date = parse_rads_datetime(start_date)
-    user_end_date = parse_rads_datetime(end_date) if (end_date[:4].isdigit() and end_date != '0000') else datetime.max.replace(tzinfo=timezone.utc)
+    user_end_date = parse_rads_datetime(end_date)
     sat_phases = [f.name for f in cyc_path.iterdir() if f.is_file() and f.name.startswith(satellite)]
     downloaded = False
 
-    for file in sat_phases:
-        cyc_first_date, cyc_last_date = read_first_last_pass(f"{cyc_path}/{file}")
+#TODO Maybe there is a better way to do this. Maybe not
+    for phase_file in sat_phases:
+        phase_code, first_cycle, last_cycle, cyc_first_date, cyc_last_date = read_first_last_cycle(f"{cyc_path}/{phase_file}")
 
         if (cyc_last_date < user_start_date) or (cyc_first_date > user_end_date):
             continue
 
-        print(f"Dates found in file: {file}")
+        if user_start_date > cyc_first_date:
+            start_cycle_num = find_cycle_num(f"{cyc_path}/{phase_file}", user_start_date)
+        else:
+            start_cycle_num = first_cycle
 
-        phase_code = file[2]
-        start_cycle_num = read_cycle_file(f"{cyc_path}/{file}", user_start_date)
-        end_cycle_num = read_cycle_file(f"{cyc_path}/{file}", user_end_date)
+        if user_end_date < cyc_last_date:
+            end_cycle_num = find_cycle_num(f"{cyc_path}/{phase_file}", user_end_date)
+        else:
+            end_cycle_num = last_cycle
 
         if (start_cycle_num.isdigit() and end_cycle_num.isdigit()):
             for each_cycle in range(int(start_cycle_num), int(end_cycle_num) + 1):
                 try:
-                    get_custom_nc_file(satellite, str(each_cycle).zfill(3), phase_code=phase_code)
+                    get_custom_nc_file(satellite, str(each_cycle).zfill(3))
                 except Exception as e:
                     print(f"Cycle number {str(each_cycle).zfill(3)} was not found. \nException message: {e}")
 
                 zip_name = f"{satellite}_c{str(each_cycle).zfill(3)}.zip"
-                zip_cmd = ['zip', '-r', str(zip_name), '.']
-                subprocess.run(zip_cmd, cwd=str(save_dir / satellite / f'c{str(each_cycle).zfill(3)}'), check=True)
-            
+                zip_dir = rads_dir / satellite
+                try:
+                    if not (zip_dir / zip_name).exists():
+                        subprocess.run(
+                            ['zip', '-r', str(zip_dir / zip_name), f'c{str(each_cycle).zfill(3)}'],
+                            cwd=zip_dir / phase_code,
+                            check=True
+                        )
+                except subprocess.CalledProcessError as e:
+                    print(f"Failed to create zip {zip_name}: {e}")
+                    
             downloaded = True
-
-# FIXME For now only download one cycle base on date. Is it worth updating to download everything until the latest data??
-        elif (start_cycle_num.isdigit()):
-            get_custom_nc_file(satellite, start_cycle_num, phase_code=phase_code)
-        else:
-            print(f"{start_cycle_num}")
 
     if (not downloaded):
         print("No matching data found in the selected date range!")
 
     return None
 
-def read_cycle_file(file_path: str, date: datetime) -> str:
+def find_cycle_num(file_path: str, date: datetime) -> str:
     with open(file_path, 'r') as f:
-        for cycle in f:
-            if (parse_rads_datetime(cycle.split()[4]) < date) and (parse_rads_datetime(cycle.split()[5]) > date):
-                return cycle.split()[1]
+        for line in f:
+            parts = line.split()
+            cycle_start_date = parse_rads_datetime(parts[4])
+            cycle_end_date = parse_rads_datetime(parts[5])
 
-    return "Couldn't find the requested data!"
+            if (cycle_start_date < date < cycle_end_date):
+                return parts[1]
+
+    return "Date out of range!"
 
 def sec85_to_utc(sec: str) -> datetime:
     sec85 = float(sec)
