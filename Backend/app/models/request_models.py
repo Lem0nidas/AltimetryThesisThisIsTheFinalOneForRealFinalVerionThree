@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field, field_validator, model_validator
-from typing import Dict, Self
+from typing import Self
 from datetime import datetime, timezone
 
 
@@ -55,5 +55,13 @@ class DateRequest(DownloadRequest):
         return self
 
 class ProcessedRequest(DownloadRequest):
-    options: Dict[str, str] = Field(..., description="Comma-separated list of variable names")
+    options: dict[str, str | list[str]] = Field(..., description="Comma-separated list of variable names")
     file: bool = Field(..., description="False = ASCII, True = NetCDF")
+
+class BBox(BaseModel):
+    north_east: dict[str, float] = Field(alias="northEast")
+    south_west: dict[str, float] = Field(alias="southWest")
+
+    model_config = {
+        "populate_by_name": True
+    }

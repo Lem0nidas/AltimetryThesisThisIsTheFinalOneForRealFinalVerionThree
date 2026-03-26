@@ -4,9 +4,9 @@ from models.request_models import *
 from services.rads_sync_latest import get_latest_nc_file
 from services.rads_sync_custom import get_custom_nc_file
 from services.rads_sync_date import get_date_nc_file
-from services.rads2asc import get_asc
-from services.rads2nc import get_nc
+from services.rads2processed import get_processed
 from services.view import storeNetcdf
+from utils.get_cycles import get_cycles
 
 
 router = APIRouter()
@@ -64,18 +64,12 @@ def download_processed_data(req: ProcessedRequest):
     elif not req.options:
         raise HTTPException(status_code=400, detail="Missing options from request!")
 
-    if (req.file == False):
-        try:
-            get_asc(req.satellite, req.options)
-            print(f"Received ascii request for: {req.satellite}. \nRequested variables are: {req.options}")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
-    else: 
-        try:
-            get_nc()
-            print(f"Received nc request for: {req.satellite}. \nRequested variables are: {req.options}")
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=str(e))
+    try:
+        get_processed(req.satellite, req.options, req.file)
+        print(f"Received ascii request for: {req.satellite}. \nRequested variables are: {req.options}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
     return {"message": f"Received processing request for {req.satellite}. \nRequested variables are: {req.options}"}
 
 
@@ -83,7 +77,20 @@ def download_processed_data(req: ProcessedRequest):
 async def view(file: UploadFile = File(...)):
     try:
         data = await storeNetcdf(file)
-        print(data)
+        # print(data)
         return JSONResponse(content=data)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/api/map_info")
+async def handle_selection(bbox: BBox):
+    # print(bbox)
+    return {"status": "ok"}
+
+@router.post("/api/get_cycles")
+def get_cycles_list(req: DownloadRequest):
+    try:
+        return get_cycles(req.satellite)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -1,4 +1,4 @@
-export async function processedDownload(satellite: string, options: Record<string, string>, file: boolean): Promise<string> {
+export async function processedDownload(satellite: string, options: Record<string, string | string[]>, file: boolean): Promise<string> {
     const response = await fetch(`http://localhost:8000/api/download_processed`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

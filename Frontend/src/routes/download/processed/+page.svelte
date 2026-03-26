@@ -6,34 +6,23 @@
 	import { satellites } from '$lib/data/satellites';
 	import { processedDownload } from '$lib';
 	import Map from '$lib/components/Map.svelte';
-	import Switch from '$lib/components/Switch.svelte';
+	import { requestCycles } from '$lib/api/cycles';
 
 	let { children } = $props();
 
-	let selectedSatellite: RADSSatellite = $state({ name: '', code: '' });
+	let selectedSatellite: RADSSatellite = $state({ name: '', code: '', start: '', end: '' });
 	let selectedVariable: RADSVariable = $state({ name: '', varName: '', description: '' });
-	let selectedCycle: string = $state('');
-	let selectedArea: string = $state('');
 	let listBoxItems: RADSVariable[] = $state([]);
-	let options: Record<string, string> = $derived.by(() => {
-		let opts: Record<string, string> = {
-			vars: listBoxItems.map((v) => v.varName).join(',')
+	let selectedRegion: string = $state('');
+	let fileType: boolean = $state(false);
+	let options: Record<string, string | string[]> = $derived.by(() => {
+		let opts: Record<string, string | string[]> = {
+			cycle: Array.from(selectedCycles).sort(),
+			vars: listBoxItems.map((v) => v.varName).join(','),
+			region: selectedRegion
 		};
-
-		if (selectedCycle != '') {
-			opts.cycle = selectedCycle;
-		}
-
-		// if (selectedArea != '') {
-		// 	opts.region = selectedArea;
-		// }
-
-		opts.region = selectedArea;
-
 		return opts;
 	});
-
-	let fileType = $state(false);
 
 	let messages = $state({
 		response: '',
@@ -42,6 +31,15 @@
 		custom: '',
 		date: ''
 	});
+
+	let allCycles: any[] = $state([]);
+	$effect( () => {
+		if (selectedSatellite.code) {
+			(async () => {
+				allCycles = await requestCycles(selectedSatellite.code);
+			})();
+		}
+	})
 
 	function addToList() {
 		if (!listBoxItems.some((item) => item.name === selectedVariable.name)) {
@@ -56,18 +54,10 @@
 	async function handleSubmit(event: SubmitEvent) {
 		event.preventDefault();
 
-		// alert('Selected cycle: ' + selectedCycle + ' Selected Area: ' + selectedArea);
-
-		if (!selectedSatellite || listBoxItems.length === 0) {
-			messages.response = 'Please select a satellite and a variable';
+		if (!selectedSatellite || listBoxItems.length === 0 || selectedCycles.size === 0) {
+			messages.response = 'Please provide satellite, variable and cycles';
 			return;
 		}
-
-		// let options: Record<string, string> = {
-		// 	vars: listBoxItems.map((v) => v.varName).join(','),
-		// 	cycle: selectedCycle,
-		// 	area: selectedArea
-		// };
 
 		try {
 			messages.response = await processedDownload(selectedSatellite.code, options, fileType);
@@ -76,6 +66,53 @@
 			console.log(err);
 		}
 	}
+	
+	let selectedCycles: Set<string> = $state(new Set());
+	let lastClickedIndex: number | null = null;
+
+	function handleClickCheckbox(index: number, item: { cycle: string, start: string, end: string }, event: MouseEvent) {
+		if (event.shiftKey && lastClickedIndex !== null) {
+		const [start, end] = [lastClickedIndex, index].sort((a, b) => a - b);
+		
+		for (let i = start; i <= end; i++) {
+			selectedCycles.add(allCycles[i].cycle);
+		}
+		} else {
+			if (selectedCycles.has(item.cycle)) {
+				selectedCycles.delete(item.cycle);
+			} else {
+				selectedCycles.add(item.cycle);
+			}
+			lastClickedIndex = index;
+		}
+
+		selectedCycles = new Set(selectedCycles);
+	}
+
+	let allSelected: boolean = $derived(selectedCycles.size == allCycles.length);
+	function toggleAll() {
+		if (allSelected) {
+			selectedCycles = new Set(allCycles.map(item => item.cycle));
+		} else {
+			selectedCycles = new Set();
+		}
+	}
+
+
+	let inputValue = $state('');
+	let formatedInputValue = $derived(inputValue.padStart(3, '0'));
+	const checkboxMap: Record<string, HTMLInputElement> = $state({});
+
+	$effect(() => {
+		const checkboxElement = checkboxMap[formatedInputValue];
+
+		if (checkboxElement) {
+			checkboxElement.scrollIntoView({
+				behavior: "instant",
+				block: "center"
+			});
+		}
+	})
 </script>
 
 <h1>Download Processed Data page</h1>
@@ -91,12 +128,61 @@
 		</select>
 	</fieldset>
 
-	<Switch bind:selectedProperty={selectedCycle} type="Cycle" />
+	<fieldset disabled={!selectedSatellite.code}>
+		<div class="cycle-search-wrapper">
+			<div class="cycle-search">
+				<label for="cycle-number">
+					Cycle number
+				</label>
+				<input 
+					type="text" 
+					id="cycle-number"
+					placeholder="Search for a cycle number" 
+					maxlength={3} 
+					bind:value={inputValue}
+				/>
+			</div>
+			<div class="select-all">
+				<label for="select-all">
+					<input 
+						type="checkbox" 
+						name="select-all" 
+						id="select-all" 
+						bind:checked={allSelected}
+						onchange={toggleAll} 
+					/> 
+					Select all the cycles
+				</label>
+			</div>
+		</div>
 
+		<div class="cycle-listbox-wrapper">
+			<ul id="cycle-listbox">
+				{#each allCycles as item, index}
+					<li>
+						<label>
+							<input 
+								type="checkbox"
+								id={String(index)}
+								checked={selectedCycles.has(item.cycle)}
+								bind:this={checkboxMap[item.cycle]}
+								onclick={
+									(e) => handleClickCheckbox(index, item, e)
+								}
+							/>
+							Cycle {item.cycle} | From {item.start} - Until {item.end}
+						</label>
+					</li>
+				{/each}
+			</ul>
+		</div>
+
+	</fieldset>
+	
 	<fieldset>
-		<label for="listbox">Selected Variables:</label>
-		<div class="listbox-wrapper">
-			<ul id="listbox">
+		<label for="var-listbox">Selected Variables:</label>
+		<div class="var-listbox-wrapper">
+			<ul id="var-listbox">
 				{#each listBoxItems as items, index}
 					<li>
 						<span>{items.name}</span>
@@ -138,8 +224,7 @@
 	</fieldset>
 </form>
 
-<Map bind:selectedOcean={selectedArea} />
-
+<Map bind:selectedArea={selectedRegion} />
 {@render children?.()}
 
 <style>
@@ -172,7 +257,12 @@
 		justify-content: center;
 	}
 
-	ul#listbox {
+	ul#cycle-listbox li {
+		list-style: none;
+		user-select: none;
+	}
+
+	ul#var-listbox {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.2em;
@@ -183,7 +273,7 @@
 		margin: 0.2rem;
 	}
 
-	ul#listbox li {
+	ul#var-listbox li {
 		display: flex;
 		align-items: center;
 		padding: 0.3rem 0.6rem;
@@ -193,7 +283,7 @@
 		width: fit-content;
 	}
 
-	ul#listbox li:hover {
+	ul#var-listbox li:hover {
 		background-color: #ffffff0a;
 		box-shadow: 0 0 5px rgba(0, 0, 0, 0.4);
 		cursor: default;
@@ -236,12 +326,37 @@
 		--pico-border-color: #14cc32;
 	}
 
-	.listbox-wrapper {
+	input#cycle-number {
+		width: auto;
+	}
+
+	.var-listbox-wrapper {
 		height: 270px;
 		border: 1px solid #2a3140;
 		border-radius: 20px;
 		background-color: #1c212c;
 		box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
 		margin-bottom: 1rem;
+	}
+
+	.cycle-listbox-wrapper {
+		height: 200px;
+		border: 1px solid #2a3140;
+		border-radius: 20px;
+		background-color: #1c212c;
+		box-shadow: 0 0 10px rgba(0, 0, 0, 0.4);
+		margin-bottom: 1rem;
+		overflow-y: auto;
+	}
+
+	.cycle-search-wrapper {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 5%;
+	}
+
+	.select-all {
+		padding-top: 20px
 	}
 </style>
