@@ -1,17 +1,16 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import 'leaflet/dist/leaflet.css';
-	import L, { Bounds, LatLng, Rectangle as LeafletRectangle } from 'leaflet';
+	import L, { LatLng, Rectangle as LeafletRectangle } from 'leaflet';
 	import simplified_oceans from '$lib/data/simplified_oceans.geojson?raw';
-	import { requestBox } from '$lib/api/map';
 
 	let map: L.Map;
 	let geojsonLayer: L.GeoJSON;
 	let mapContainer: HTMLDivElement;
 	let { selectedArea = $bindable() }: { selectedArea: string } = $props();
-	let areaNames: string[] = $state(['']);
+	let areaNames: string[] = $state([]);
 	let parsedGeoJson = JSON.parse(simplified_oceans);
-	let mode: 'ocean' | 'draw' = $state('ocean');
+	let mode: 'ocean' | 'draw' = $state('draw');
 
 	let startPoint: LatLng | null;
 	let rectangle: LeafletRectangle;
@@ -20,10 +19,8 @@
 	let isMoving = false;
 	let moveOffset: L.LatLng | null = null;
 
-	function handleToggle(e: Event) {
-		const checked = (e.target as HTMLInputElement).checked;
-		setMode(checked ? 'draw' : 'ocean');
-	}
+	let checked: boolean = $state(false)
+	$effect(() => { setMode(checked ? 'ocean' : 'draw'); })
 
 	function enableDrawMode() {
 		map.dragging.disable();
@@ -205,6 +202,7 @@
 			minZoom: 2
 		}).addTo(map);
 
+		enableDrawMode();
 		setMode(mode);
 	});
 
@@ -216,19 +214,21 @@
 <div>
 	<fieldset id="map-type">
 		<label for="map-type-switch">
+			Draw
+			<input id="map-type-switch" type="checkbox" role="switch" bind:checked={checked} />
 			Ocean
-			<input id="map-type-switch" type="checkbox" role="switch" onchange={handleToggle} />
-			Select
 		</label>
 	</fieldset>
 
-	<label for="area-select">Select an area: </label>
-	<select id="area-select" bind:value={selectedArea} onchange={() => highlightOcean(selectedArea)}>
-		<option disabled selected value="">-- Choose --</option>
-		{#each [...new Set(areaNames)] as name}
-			<option value={name}>{name}</option>
-		{/each}
-	</select>
+	{#if checked}
+		<label for="area-select">Select an area: </label>
+		<select id="area-select" bind:value={selectedArea} onchange={() => highlightOcean(selectedArea)}>
+			<option disabled selected value="">-- Choose --</option>
+			{#each [...new Set(areaNames)] as name}
+				<option value={name}>{name}</option>
+			{/each}
+		</select>
+	{/if}
 </div>
 
 <p>Mode: {mode}</p>

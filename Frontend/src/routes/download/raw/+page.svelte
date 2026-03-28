@@ -28,7 +28,8 @@
 	$effect(() => {
 		if (selectedSatellite.name != '') {
 			toggles.dateSwitch = false;
-			selectedEndDate = (selectedSatellite.end !== 'present') ? selectedSatellite.end : currentDate;;
+			selectedStartDate = selectedSatellite.start;
+			selectedEndDate = (selectedSatellite.end == 'present') ? currentDate : selectedSatellite.end;
 		}
 
 		if (!toggles.pass) {
